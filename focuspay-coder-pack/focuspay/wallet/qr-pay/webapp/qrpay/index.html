@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Оплата по QR · Focus Pay</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 0; padding: 20px;
+      /* Явные цвета — tg-theme иногда даёт текст = фон */
+      background: #0f1419;
+      color: #f2f4f7;
+    }
+    .card {
+      max-width: 460px; margin: 0 auto;
+      background: #1a2332;
+      border: 1px solid #2a3648;
+      border-radius: 16px; padding: 22px;
+    }
+    h1 { font-size: 20px; margin: 0 0 8px; color: #fff; }
+    .hint { color: #9aa8bc; font-size: 14px; margin: 0 0 16px; line-height: 1.4; }
+    .row { margin: 14px 0; font-size: 15px; }
+    .row b { display: block; font-size: 12px; color: #8b9bb0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
+    .val {
+      font-size: 20px; font-weight: 700; word-break: break-word;
+      color: #ffffff;
+      background: #0d121a;
+      border: 1px solid #2a3648;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .total .val { color: #4ade80; }
+    .err { color: #ff6b6b; margin-top: 12px; font-size: 15px; line-height: 1.4; white-space: pre-line; }
+    .ok { margin-top: 12px; color: #9aa8bc; font-size: 13px; }
+    .timer { color: #ffb347; font-size: 13px; margin-top: 10px; }
+    button {
+      width: 100%; margin-top: 10px; padding: 14px; font-size: 16px;
+      font-weight: 600; border: 0; border-radius: 12px; cursor: pointer;
+      background: #2aabee; color: #fff;
+    }
+    button.secondary { background: #243044; color: #d7e0ec; padding: 10px; font-size: 14px; }
+    button[disabled] { opacity: .55; }
+    input {
+      width: 100%; margin-top: 10px; padding: 12px 14px; font-size: 14px;
+      border-radius: 10px; border: 1px solid #2a3648;
+      background: #0d121a; color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Оплата по QR</h1>
+    <p class="hint" id="hint">Отсканируйте QR-код СБП — оплатим его с вашего баланса FocusPay.</p>
+    <div id="content"></div>
+  </div>
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) {
+      try { tg.ready(); tg.expand(); tg.setHeaderColor("#0f1419"); tg.setBackgroundColor("#0f1419"); } catch (e) {}
+    }
+
+    const content = document.getElementById("content");
+    const hint = document.getElementById("hint");
+    let timerId = null;
+    let current = null;
+
+    function money(value) {
+      return Number(value || 0).toLocaleString("ru-RU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function stopTimer() {
+      if (timerId) { clearInterval(timerId); timerId = null; }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = String(text == null ? "" : text);
+      return div.innerHTML;
+    }
+
+    async function api(path, body) {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.assign({ init_data: (tg && tg.initData) || "" }, body)),
+      });
+      let data = null;
+      try { data = await res.json(); } catch (e) {}
+      if (!data || typeof data !== "object") {
+        return { ok: false, message: "Сервис недоступен, попробуйте позже." };
+      }
+      return data;
+    }
+
+    function showError(message) {
+      stopTimer();
+      content.innerHTML = '<div class="err"></div>';
+      content.querySelector(".err").textContent = message;
+      const again = document.createElement("button");
+      again.textContent = "Сканировать заново";
+      again.onclick = showScanner;
+      content.appendChild(again);
+    }
+
+    function showScanner() {
+      stopTimer();
+      current = null;
+      hint.textContent = "Отсканируйте QR-код СБП — оплатим его с вашего баланса FocusPay.";
+      content.innerHTML = "";
+
+      const scan = document.createElement("button");
+      scan.textContent = "📷 Сканировать QR";
+      scan.onclick = () => {
+        if (!tg || !tg.showScanQrPopup) {
+          showManualInput("Сканер недоступен. Вставьте ссылку из QR-кода.");
+          return;
+        }
+        tg.showScanQrPopup({ text: "Наведите на QR-код СБП" }, (text) => {
+          tg.closeScanQrPopup();
+          runCheck(text);
+          return true;
+        });
+      };
+      content.appendChild(scan);
+
+      const manual = document.createElement("button");
+      manual.className = "secondary";
+      manual.textContent = "Вставить ссылку вручную";
+      manual.onclick = () => showManualInput();
+      content.appendChild(manual);
+    }
+
+    function showManualInput(message) {
+      stopTimer();
+      content.innerHTML = "";
+      if (message) {
+        const err = document.createElement("div");
+        err.className = "err";
+        err.textContent = message;
+        content.appendChild(err);
+      }
+      const input = document.createElement("input");
+      input.placeholder = "https://qr.nspk.ru/...";
+      input.autocapitalize = "off";
+      input.spellcheck = false;
+      content.appendChild(input);
+
+      const submit = document.createElement("button");
+      submit.textContent = "Проверить код";
+      submit.onclick = () => runCheck(input.value);
+      content.appendChild(submit);
+
+      const back = document.createElement("button");
+      back.className = "secondary";
+      back.textContent = "Назад к сканеру";
+      back.onclick = showScanner;
+      content.appendChild(back);
+    }
+
+    async function runCheck(qrCode) {
+      const code = String(qrCode || "").trim();
+      if (!code) { showError("Код пустой. Отсканируйте ещё раз."); return; }
+      stopTimer();
+      hint.textContent = "Проверяем код…";
+      content.innerHTML = '<div class="ok">Подождите…</div>';
+      const data = await api("/webapp/api/qr/check", { qr_code: code });
+      if (!data.ok) { showError(data.message || "Не удалось проверить код."); return; }
+      current = { payment: data, qr_code: code };
+      showConfirm(data);
+    }
+
+    function showConfirm(data) {
+      hint.textContent = "Проверьте получателя и сумму. Проверка кода действует 30 секунд.";
+      content.innerHTML = [
+        '<div class="row"><b>Получатель</b><div class="val">' + escapeHtml(data.payee_name || "—") + "</div></div>",
+        '<div class="row"><b>Сумма перевода</b><div class="val">' + money(data.amount_rub) + " ₽</div></div>",
+        '<div class="row total"><b>Списываем с баланса</b><div class="val">' + money(data.charged_rub) + " ₽</div></div>",
+        '<div class="timer" id="timer"></div>',
+      ].join("");
+
+      const pay = document.createElement("button");
+      pay.textContent = "Оплатить";
+      pay.onclick = () => runPay(pay);
+      content.appendChild(pay);
+
+      const cancel = document.createElement("button");
+      cancel.className = "secondary";
+      cancel.textContent = "Отмена";
+      cancel.onclick = showScanner;
+      content.appendChild(cancel);
+
+      startTimer(data.expires_at, pay);
+    }
+
+    function startTimer(expiresAt, payButton) {
+      const timer = document.getElementById("timer");
+      const deadline = expiresAt ? Date.parse(expiresAt) : 0;
+      if (!deadline) { if (timer) timer.textContent = ""; return; }
+
+      const tick = () => {
+        const left = Math.ceil((deadline - Date.now()) / 1000);
+        if (left > 0) {
+          timer.textContent = "Код действует ещё " + left + " с";
+          return;
+        }
+        stopTimer();
+        timer.textContent = "Проверка истекла.";
+        payButton.disabled = true;
+        // Повторная проверка того же кода — платить по истёкшей нельзя.
+        payButton.textContent = "Проверить заново";
+        payButton.disabled = false;
+        payButton.onclick = () => runCheck(current && current.qr_code);
+      };
+      tick();
+      timerId = setInterval(tick, 1000);
+    }
+
+    async function runPay(payButton) {
+      if (!current) { showScanner(); return; }
+      payButton.disabled = true;
+      payButton.textContent = "Платим…";
+      const data = await api("/webapp/api/qr/pay", { payment_id: current.payment.payment_id });
+      stopTimer();
+      if (!data.ok) { showError(data.message || "Платёж не прошёл."); return; }
+      hint.textContent = "";
+      const done = data.state === "paid";
+      content.innerHTML =
+        '<div class="row"><b>' + (done ? "Готово" : "В обработке") + '</b><div class="val">' +
+        (done ? "Оплата прошла" : "Платёж выполняется") + "</div></div>" +
+        '<div class="ok">' +
+        (done
+          ? "Чек и списание видны в кошельке."
+          : "Итог придёт сообщением от бота.") +
+        "</div>";
+      const close = document.createElement("button");
+      close.textContent = "Закрыть";
+      close.onclick = () => { if (tg && tg.close) tg.close(); };
+      content.appendChild(close);
+    }
+
+    showScanner();
+  </script>
+</body>
+</html>

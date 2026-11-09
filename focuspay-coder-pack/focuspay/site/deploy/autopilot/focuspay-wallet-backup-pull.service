@@ -1,0 +1,6 @@
+[Unit]
+Description=Pull FocusPay wallet backups from the signer
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/focuspay-pull-wallet-backups

@@ -1,0 +1,5 @@
+# Pinned tools for /opt/focuspay-security-tools (NOT the API venv).
+# Install: python3 -m venv /opt/focuspay-security-tools && \
+#   /opt/focuspay-security-tools/bin/pip install -r requirements-security.txt
+bandit==1.8.3
+pip-audit==2.9.0

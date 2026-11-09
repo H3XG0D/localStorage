@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-base text-[#fafafa] min-h-screen font-sans antialiased;
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-hover;
+  }
+
+  .btn-secondary {
+    @apply btn bg-elevated text-[#fafafa] hover:bg-border border border-border;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-muted hover:text-[#fafafa] hover:bg-elevated;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600/90 text-white hover:bg-red-600;
+  }
+
+  .input {
+    @apply w-full px-3 py-2.5 bg-elevated border border-border rounded-xl text-[#fafafa] placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent text-base;
+  }
+
+  .card {
+    @apply bg-surface rounded-xl border border-border p-4 md:p-5;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-active { @apply badge bg-emerald-500/15 text-emerald-400; }
+  .badge-in_work { @apply badge bg-sky-500/15 text-sky-400; }
+  .badge-awaiting_doliv { @apply badge bg-amber-500/15 text-amber-400; }
+  .badge-doliv_in_progress { @apply badge bg-orange-500/15 text-orange-400; }
+  .badge-closed { @apply badge bg-zinc-500/15 text-zinc-400; }
+  .badge-archive { @apply badge bg-violet-500/15 text-violet-400; }
+  .badge-pending { @apply badge bg-amber-500/15 text-amber-400; }
+  .badge-in_progress { @apply badge bg-sky-500/15 text-sky-400; }
+  .badge-completed { @apply badge bg-emerald-500/15 text-emerald-400; }
+  .badge-cancelled { @apply badge bg-red-500/15 text-red-400; }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-xl border border-border;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table th {
+    @apply text-left text-muted font-medium px-4 py-3 bg-elevated/50 border-b border-border whitespace-nowrap;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 border-b border-border/50 whitespace-nowrap;
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-elevated/30;
+  }
+
+  .progress-bar {
+    @apply w-full bg-elevated rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-accent rounded-full transition-all;
+  }
+}
+
+/* recharts dark theme */
+.recharts-cartesian-grid line {
+  stroke: #27272a;
+}
+.recharts-text {
+  fill: #71717a;
+  font-size: 11px;
+}

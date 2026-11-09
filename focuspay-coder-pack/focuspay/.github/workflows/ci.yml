@@ -1,0 +1,274 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_staging_config_guard:
+        description: "Run the local staging configuration guard"
+        required: false
+        type: boolean
+        default: false
+      run_fake_payfast_contract:
+        description: "Run local Fake PayFast contract tests"
+        required: false
+        type: boolean
+        default: false
+      run_backend_payfast_tests:
+        description: "Run local targeted backend PayFast tests"
+        required: false
+        type: boolean
+        default: false
+      run_payment_bootstrap_static:
+        description: "Run payment bootstrap static checks"
+        required: false
+        type: boolean
+        default: false
+      run_payfast_e2e:
+        description: "Run PayFast E2E on the isolated staging runner"
+        required: false
+        type: boolean
+        default: false
+      run_casino_e2e:
+        description: "Run casino E2E on the isolated staging runner"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  shell-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Check shell syntax
+        run: |
+          find bot/tg_bot_btc/scripts bot/tg_bot_btc/deploy site/exchange-backend/scripts \
+            -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+      - name: Run shellcheck on safety scripts
+        run: |
+          shellcheck \
+            bot/tg_bot_btc/scripts/backup_db.sh \
+            bot/tg_bot_btc/scripts/backup_full.sh \
+            bot/tg_bot_btc/scripts/backup_offsite_sync.sh \
+            bot/tg_bot_btc/scripts/check_secret_age.sh \
+            bot/tg_bot_btc/scripts/rotate_secrets.sh \
+            bot/tg_bot_btc/scripts/validate_env.sh \
+            site/exchange-backend/scripts/validate_env.sh
+      - name: Verify systemd units
+        run: |
+          sudo mkdir -p /opt/tg_bot_btc/scripts
+          sudo touch /opt/tg_bot_btc/.env
+          sudo cp \
+            bot/tg_bot_btc/scripts/backup_full.sh \
+            bot/tg_bot_btc/scripts/check_secret_age.sh \
+            bot/tg_bot_btc/scripts/rotate_secrets.sh \
+            /opt/tg_bot_btc/scripts/
+          systemd-analyze verify bot/tg_bot_btc/systemd/*.service bot/tg_bot_btc/systemd/*.timer
+      - name: Exercise environment validators
+        run: |
+          set -euo pipefail
+          bot_env="$(mktemp)"
+          backend_env="$(mktemp)"
+          trap 'rm -f "$bot_env" "$backend_env"' EXIT
+          {
+            printf '%s\n' \
+              'TELEGRAM_BOT_TOKEN=1234567890:abcdefghijklmnopqrstuvwxyzABCDEFG' \
+              'DATABASE_DSN=postgresql://focuspay:strong-example-only@127.0.0.1:5432/exchange_bot' \
+              'CALLBACK_SECRET=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' \
+              'RECEIPT_SECRET=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' \
+              'WEBHOOK_SECRET=cccccccccccccccccccccccccccccccc' \
+              'WEBHOOK_ALLOWED_IPS=192.0.2.10' \
+              'WEBHOOK_TRUSTED_PROXIES=127.0.0.1,::1' \
+              'OFFSITE_BACKUP_ENABLED=false'
+          } > "$bot_env"
+          bot/tg_bot_btc/scripts/validate_env.sh "$bot_env"
+          {
+            printf '%s\n' \
+              'SECRET_KEY=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' \
+              'DATABASE_DSN=postgresql://focuspay:strong-example-only@127.0.0.1:5432/exchange_bot' \
+              'CALLBACK_SECRET=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' \
+              'RECEIPT_SECRET=cccccccccccccccccccccccccccccccc' \
+              'WEBHOOK_SECRET=dddddddddddddddddddddddddddddddd' \
+              'INTERNAL_API_SECRET=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' \
+              'SECURITY_TRUSTED_PROXIES=127.0.0.1,::1' \
+              'DEBUG=false' \
+              'EXPOSE_OPENAPI_DOCS=false' \
+              'EXPOSE_LOCAL_CORS=0'
+          } > "$backend_env"
+          site/exchange-backend/scripts/validate_env.sh "$backend_env"
+
+  bot-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bot/tg_bot_btc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pytest
+      - run: pytest tests/ -q --tb=short
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site/exchange-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest tests/ -q --tb=short
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: focussite/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: focussite/frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc -b
+      - run: node scripts/smoke-ai-tasks-regression.mjs
+      - run: node scripts/smoke-admin-broadcast.mjs
+      - run: npm run build
+
+  pip-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip-audit -r bot/tg_bot_btc/requirements.txt --desc on
+      - run: pip-audit -r site/exchange-backend/requirements.txt --desc on
+
+  staging-config-guard:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging_config_guard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site/exchange-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q tests/test_staging_config.py
+
+  fake-payfast-contract:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_fake_payfast_contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install -r site/exchange-backend/requirements-dev.txt pytest
+      - name: Run Fake PayFast contract tests
+        run: |
+          pytest -q test_support/test_fake_payfast_http.py
+          pytest -q site/exchange-backend/tests/test_payfast_http_fake.py
+          pytest -q bot/tg_bot_btc/tests/test_payfast_http_fake.py
+
+  backend-payfast-targeted:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_backend_payfast_tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site/exchange-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q tests/test_payfast_recovery_window.py tests/test_payfast_http_fake.py
+
+  payment-bootstrap-static:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_payment_bootstrap_static
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash focussite/docker/staging-db/bootstrap_static_test.sh
+
+  payfast-e2e:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_payfast_e2e
+    runs-on: [self-hosted, linux, staging-isolated]
+    environment: staging-isolated
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run isolated disposable PayFast E2E
+        env:
+          STAGING_E2E_PAYFAST: "1"
+          STAGING_E2E_PAYFAST_RUN_ID: ${{ github.run_id }}${{ github.run_attempt }}
+        run: |
+          bash focussite/docker/staging-db/payfast-e2e-lifecycle.sh prepare
+          trap 'bash focussite/docker/staging-db/payfast-e2e-lifecycle.sh teardown' EXIT
+          bash focussite/docker/staging-db/payfast-e2e-lifecycle.sh run
+
+  casino-e2e:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_casino_e2e
+    runs-on: [self-hosted, linux, staging-isolated]
+    environment: staging-isolated
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require isolated staging environment
+        env:
+          STAGING_ENV_FILE: ${{ secrets.STAGING_ENV_FILE }}
+          CASINO_STAGING_ENV_FILE: ${{ secrets.CASINO_STAGING_ENV_FILE }}
+        run: |
+          test -n "$STAGING_ENV_FILE" || {
+            printf '%s\n' 'STAGING_ENV_FILE is required on the isolated staging environment.' >&2
+            exit 1
+          }
+          test -n "$CASINO_STAGING_ENV_FILE" || {
+            printf '%s\n' 'CASINO_STAGING_ENV_FILE is required on the isolated staging environment.' >&2
+            exit 1
+          }
+      - name: Run opt-in casino E2E
+        env:
+          STAGING_ENV_FILE: ${{ secrets.STAGING_ENV_FILE }}
+          CASINO_STAGING_ENV_FILE: ${{ secrets.CASINO_STAGING_ENV_FILE }}
+        run: |
+          set -euo pipefail
+          casino_workspace="$GITHUB_WORKSPACE/../focuspay-casino"
+          test -d "$casino_workspace" || {
+            printf '%s\n' 'The isolated runner must provide the adjacent focuspay-casino workspace.' >&2
+            exit 1
+          }
+          umask 077
+          staging_env="$GITHUB_WORKSPACE/focussite/.env.staging"
+          casino_staging_env="$casino_workspace/.env.staging"
+          test ! -e "$staging_env" || {
+            printf '%s\n' 'Refusing to overwrite an existing FocusPay staging env file.' >&2
+            exit 1
+          }
+          test ! -e "$casino_staging_env" || {
+            printf '%s\n' 'Refusing to overwrite an existing casino staging env file.' >&2
+            exit 1
+          }
+          trap 'rm -f "$staging_env" "$casino_staging_env"' EXIT
+          printf '%s' "$STAGING_ENV_FILE" > "$staging_env"
+          printf '%s' "$CASINO_STAGING_ENV_FILE" > "$casino_staging_env"
+          docker compose \
+            -f focussite/docker-compose.staging.yml \
+            --profile casino-e2e run --rm casino-e2e

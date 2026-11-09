@@ -1,0 +1,26 @@
+[Unit]
+Description=FocusPay nightly SAST self-check (bandit + pip-audit, fail-closed)
+Documentation=file:///opt/exchange-backend/deploy/security/README.md
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+User=focuspay
+Group=focuspay
+# Not /opt/exchange-backend — operator.py would shadow stdlib.
+WorkingDirectory=/var/lib/focuspay/selfcheck
+EnvironmentFile=/opt/exchange-backend/.env
+Environment=BANDIT_BIN=/opt/focuspay-security-tools/bin/bandit
+Environment=PIP_AUDIT_BIN=/opt/focuspay-security-tools/bin/pip-audit
+Environment=EXCHANGE_ROOT=/opt/exchange-backend
+Environment=BOT_ROOT=/opt/tg_bot_btc
+Environment=SELFCHECK_ARTIFACT_DIR=/var/lib/focuspay/selfcheck
+# Do not put security-tools on PATH; preflight uses absolute bins only.
+Environment=PATH=/usr/bin:/bin
+ExecStart=/opt/exchange-backend/venv/bin/python /opt/exchange-backend/scripts/security_selfcheck.py
+Nice=10
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target

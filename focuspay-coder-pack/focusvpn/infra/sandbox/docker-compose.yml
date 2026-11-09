@@ -1,0 +1,44 @@
+# FocusVPN E1 sandbox — ISOLATED from FocusPay production.
+# Ports 15432/15433 only. Never points at exchange_bot@:5432.
+#
+#   FOCUSVPN_SANDBOX=1 podman compose -f infra/sandbox/docker-compose.yml up -d
+#
+name: focusvpn-e1-sandbox
+
+services:
+  focusvpn-pg:
+    image: docker.io/library/postgres:16
+    environment:
+      POSTGRES_USER: focusvpn_sandbox
+      POSTGRES_PASSWORD: focusvpn_sandbox
+      POSTGRES_DB: focusvpn_sandbox
+    ports:
+      - "15432:5432"
+    volumes:
+      - myvpn_e1_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U focusvpn_sandbox -d myvpn_sandbox"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  focuspay-pg:
+    image: docker.io/library/postgres:16
+    environment:
+      POSTGRES_USER: focuspay_sandbox
+      POSTGRES_PASSWORD: focuspay_sandbox
+      POSTGRES_DB: focuspay_sandbox
+    ports:
+      - "15433:5432"
+    volumes:
+      - focuspay_e1_pg:/var/lib/postgresql/data
+      - ./focuspay-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U focuspay_sandbox -d focuspay_sandbox"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  myvpn_e1_pg:
+  focuspay_e1_pg:

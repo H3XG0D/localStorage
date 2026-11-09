@@ -1,0 +1,18 @@
+[Unit]
+Description=FocusPay Telegram bot (polling)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/tg_bot_btc
+EnvironmentFile=/opt/tg_bot_btc/.env
+Environment=HOME=/var/lib/focuspay
+Environment=CHROME_PATH=/usr/bin/google-chrome-stable
+ExecStart=/opt/tg_bot_btc/venv/bin/python main.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+---
+description: Grill ambiguous or mixed requests before implementing. Use when the user packs several tasks into one message, says «тупит / как-то так», or the screen/path is missing.
+alwaysApply: false
+---
+
+# Grill ambiguous requests
+
+If the latest user message is vague, mixed, or contradicts earlier chat:
+
+1. Parse words: verb, screen (`/x8` `/ops` bot), in-scope vs out-of-scope.
+2. Default goal = last explicit «нужно / сделай / давай / измени». Earlier topics are extras, not the task.
+3. Ask 3–7 hard questions. Do not write code until one goal is confirmed.
+4. Do not treat agent findings or prior-chat hypotheses as requirements.
+5. Do not retarget to `/exchange` or LIVE RATES unless the user said so.

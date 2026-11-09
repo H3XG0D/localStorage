@@ -1,0 +1,44 @@
+---
+description: After Ops AI / Cursor prompts — mark done on server, notify assigner, format news/posts well
+alwaysApply: true
+---
+
+# Ops AI task closeout + publishing style
+
+## When this applies
+
+If the work came from Ops AI (`ops_ai_dev_tasks`, `/x8/ai-tasks`, a `cursor_prompt`, Operator Dev Requests, or an approved AI task), **close the loop on the server** before ending the turn.
+
+## Closeout checklist (mandatory)
+
+1. **Mark done** — `POST /api/admin/ai-tasks/{id}/done` with a short `note` (what shipped / what to verify). Use normal admin auth (login / existing session). **Never** forge JWTs or bypass 2FA.
+2. **Assigner notify** — Done path must notify the operator who created the task (Telegram when linked). After backend deploy this is automatic in `mark_task_done`. If notify may have failed, say so explicitly.
+3. **Tell the human who asked** — one short line: task `#N` closed, assigner notified (or why not).
+4. **Backfill** — if asked to “разошли старые” / closeout historical tasks: call the backfill path for `approved`/`done` rows without `done_notified_at` (mark done if needed, then notify once). Do not spam duplicates.
+
+## Report / notify formatting
+
+Structure every done note and Telegram notify like this (Telegram HTML, allowed tags only):
+
+- **Title:** `Ops AI · готово #N` + task title
+- **What changed:** 3–6 short bullets
+- **Check:** one smoke line if relevant
+- **Link:** admin task URL when `PUBLIC_SITE_URL` is known
+
+No walls of text. No emoji spam.
+
+## News / buyer posts (when writing broadcasts or channel copy)
+
+Always format well:
+
+1. Bold headline
+2. 1–2 short paragraphs
+3. Benefit bullets
+4. Clear CTA (link or next step)
+
+Prefer one branded FocusPay sticker with the post when a pack is available. Use `sanitize_telegram_html` / only Telegram-safe tags (`<b>`, `<i>`, `<a>`, …).
+
+## Out of scope reminders
+
+- No auto-commit / auto-deploy unless the user explicitly asked.
+- Backend/nginx/restart = production; need explicit OK unless the current task already approved that deploy.

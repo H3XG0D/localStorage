@@ -1,0 +1,14 @@
+---
+description: After each casino-plan task, the agent runs all command checks; the human only clicks UI/logic. Stop until they accept the click pass.
+alwaysApply: true
+---
+
+# Casino plan — verification split
+
+After **each** casino-plan task, **stop**. Do not start the next task.
+
+**Agent runs every command check** from `docs/CASINO_REVIEW_CHECKLIST.md` (git, md5 local vs staging, `staging-test.sh`, `rg`, SQL, docker ports, read-only prod timestamps). Put the numbers/names in the worklog and in the chat. Do not dump a shell script for the human.
+
+**Agent also clicks** staging UI (browser tools): screens, forms, a round, visual logic. Save screenshots. Staging URLs: tunnel **18081** or host **18082**. After a task, send a short “потыкать” list of what still needs a human eye.
+
+Do not deploy to production and do not run `deploy_all.py` unless the owner gave an explicit «го» in this chat. Read-only `ssh focuspay` for file/unit timestamps is always allowed. Wait for explicit acceptance of the click pass before the next task.

@@ -1,0 +1,20 @@
+[Unit]
+Description=FocusVPN node-agent (AmneziaWG peer controller)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Needs CAP_NET_ADMIN for awg; run as root or grant capabilities.
+User=root
+EnvironmentFile=/etc/focusvpn/agent.env
+WorkingDirectory=/opt/focusvpn
+ExecStart=/opt/focusvpn/bin/node-agent
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+AmbientCapabilities=CAP_NET_ADMIN
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

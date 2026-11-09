@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Focus Pay Партнёрам</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0B0D; --surf:#141619; --surf2:#1C1F23; --line:#24282D; --line2:#2A2F35;
+  --text:#F2F4F3; --muted:#9BA3A0; --dim:#6B726F;
+  --acc:#C6FF3D; --on-acc:#0A0B0D; --acc-soft:#1A2110; --acc-line:#3D4D17; --acc-bar:#2E3A14;
+  --warn:#FFB547; --ok:#5EE3A0; --bad:#FF6B6B;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Manrope,'Segoe UI',system-ui,sans-serif}
+button{font-family:inherit;color:inherit}
+input{font-family:inherit}
+input::placeholder{color:#6B726F}
+.disp{font-family:Onest,Manrope,sans-serif}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+header{flex-shrink:0;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:10px;background:#000;border:1px solid #2E3238;display:flex;align-items:center;justify-content:center}
+.brand b{display:block;font-family:Onest,sans-serif;font-size:14px;letter-spacing:.02em}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.pill{padding:7px 12px;border-radius:999px;border:1px solid var(--acc-bar);background:var(--acc-soft);font-size:13px;font-weight:800;color:var(--acc)}
+.avatar{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line2);background:var(--surf2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.avatar.on{border-color:var(--acc)}
+main{flex-grow:1;overflow-y:auto;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.screen{padding:20px 18px 28px;display:flex;flex-direction:column;gap:16px;animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+nav{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding:6px 6px calc(6px + var(--safe-b))}
+nav button{border:none;background:none;color:#7E8682;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:8px 0;cursor:pointer;transition:color .2s}
+nav button.on{color:var(--acc)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:18px}
+.h2{margin:0;font-family:Onest,sans-serif;font-size:22px}
+.sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+.label{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+.flabel{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;display:block}
+.inp{width:100%;height:50px;border-radius:14px;border:1px solid var(--line2);background:var(--surf);color:var(--text);padding:0 16px;font-size:15px;outline:none}
+.inp:focus{border-color:var(--acc-line)}
+.btn{height:54px;border:none;border-radius:16px;background:var(--acc);color:var(--on-acc);font-size:16px;font-weight:800;cursor:pointer;width:100%;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.5}
+.btn-o{height:50px;border:1.5px solid var(--acc-line);border-radius:14px;background:transparent;color:var(--acc);font-weight:800;font-size:15px;cursor:pointer;padding:0 22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:14px 12px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.stat b{display:block;font-family:Onest,sans-serif;font-size:18px}
+.stat span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.balance{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:var(--acc);color:var(--on-acc)}
+.balance .cap{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.balance .sum{font-family:Onest,sans-serif;font-size:38px;font-weight:800;margin-top:6px}
+.balance .row{display:flex;gap:10px;margin-top:18px}
+.balance .row button{flex:1;height:46px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer}
+.shine{position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
+.bar-track{height:8px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--acc);transform-origin:left;animation:growx 1s cubic-bezier(.2,.8,.2,1) both}
+.chip{padding:4px 10px;border-radius:999px;background:var(--acc-soft);border:1px solid var(--acc-line);color:var(--acc);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.row-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--surf);border:1px solid var(--line);width:100%;text-align:left;cursor:pointer}
+.pf{width:40px;height:40px;flex-shrink:0;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--acc)}
+.chart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:16px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .b{width:100%;border-radius:8px;background:var(--acc-bar);transform-origin:bottom;animation:growy .7s cubic-bezier(.2,.8,.2,1) both;min-height:4px}
+.chart .b.top{background:var(--acc)}
+.chart small{font-size:11px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--acc);margin:14px 0 10px}
+.seg{display:grid;gap:8px}
+.opt{height:50px;border-radius:14px;border:1.5px solid var(--line2);background:var(--surf);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.opt.on{border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.tabs button{height:44px;border:none;border-radius:12px;background:transparent;color:var(--muted);font-weight:800;font-size:13px;cursor:pointer;transition:all .2s}
+.tabs button.on{background:var(--acc);color:var(--on-acc)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border-radius:18px;border:1.5px dashed var(--acc-line);background:#121509;cursor:pointer;text-align:center;padding:12px}
+.drop img{max-height:140px;border-radius:10px}
+.done-ico{width:96px;height:96px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,.8,.2,1) both}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-top:50px}
+.audio{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.audio.on{border-color:var(--acc-line)}
+.play{width:46px;height:46px;flex-shrink:0;border-radius:50%;border:none;background:var(--acc);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.wave{display:flex;align-items:center;gap:3px;height:26px;margin-top:6px}
+.wave i{width:3px;border-radius:2px;background:#3A3F44;transform:scaleY(.35)}
+.audio.on .wave i{background:var(--acc);animation:wave .9s ease-in-out infinite}
+.banner-prev{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surf2)}
+.banner-prev img{width:100%;display:block}
+.guide{display:flex;gap:14px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.phone{flex-shrink:0;position:relative;width:64px;height:114px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);overflow:hidden}
+.phone .ln{position:absolute;left:8px;height:4px;border-radius:2px;background:var(--line2)}
+.phone .bn{position:absolute;left:6px;right:6px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center}
+.tag{font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px}
+.tl{position:relative;height:8px;border-radius:99px;background:var(--surf2)}
+.tl i{position:absolute;top:0;height:100%;border-radius:99px}
+.step{display:flex;gap:14px}
+.step .l{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:2px solid}
+.dot.cur{animation:pulse 2.2s ease-out infinite}
+.vline{width:2px;flex-grow:1;min-height:22px;margin:4px 0}
+.faq{border-bottom:1px solid var(--line)}
+.faq:last-child{border-bottom:none}
+.faq button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border:none;background:none;font-weight:700;font-size:15px;text-align:left;cursor:pointer}
+.faq svg{flex-shrink:0;transition:transform .25s}
+.faq.open svg{transform:rotate(180deg);stroke:var(--acc)}
+.faq .a{padding:0 18px 16px;font-size:14px;color:var(--muted);line-height:1.55;display:none}
+.faq.open .a{display:block;animation:up .3s both}
+.menu-list{border-radius:20px;background:var(--surf);border:1px solid var(--line);overflow:hidden}
+.menu-list button{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border:none;border-bottom:1px solid var(--line);background:none;font-weight:700;font-size:15px;cursor:pointer}
+.menu-list button:last-child{border-bottom:none}
+.back{align-self:flex-start;display:flex;align-items:center;gap:6px;border:none;background:none;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;padding:4px 0}
+.hero{position:relative;height:330px;border-radius:24px;overflow:hidden;background:#000;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;padding:22px}
+.hero img{position:absolute;left:0;top:-40px;width:100%;height:400px;object-fit:cover}
+.hero .fade{position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85) 55%,#000)}
+.hero .txt{position:relative}
+.hero h1{margin:8px 0 0;font-family:Onest,sans-serif;font-size:27px;line-height:1.15}
+.num{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:1px solid var(--acc-line);color:var(--acc);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-b));transform:translateX(-50%);background:#22262B;border:1px solid var(--line2);color:var(--text);padding:12px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:10;max-width:90%;animation:up .3s both}
+.toast.bad{border-color:#5A2626}
+.skeleton{height:120px;border-radius:20px;background:linear-gradient(90deg,var(--surf),var(--surf2),var(--surf));background-size:200% 100%;animation:sk 1.2s linear infinite}
+.empty{padding:22px;border-radius:18px;border:1px dashed var(--line2);text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes shine{0%{transform:translateX(-120%) skewX(-20deg)}60%,100%{transform:translateX(320%) skewX(-20deg)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,255,61,.45)}50%{box-shadow:0 0 0 10px rgba(198,255,61,0)}}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><div class="logo" id="logoMark"></div><div><b>FOCUS PAY</b><small>Партнёрам</small></div></div>
+    <div class="hdr-r" id="hdrR"></div>
+  </header>
+  <main id="main"><div class="screen"><div class="skeleton"></div><div class="skeleton"></div></div></main>
+  <nav id="nav" style="display:none"></nav>
+</div>
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0A0B0D'); tg.setBackgroundColor('#0A0B0D'); } catch (e) {} }
+const INIT = tg ? tg.initData : '';
+const haptic = (t) => { try { tg.HapticFeedback.impactOccurred(t || 'light'); } catch (e) {} };
+const okHaptic = () => { try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} };
+
+const F_MARK = (s, c) => `<svg width="${s}" height="${s}" viewBox="0 0 184 238" fill="${c || '#fff'}" aria-hidden="true"><rect x="62" y="0" width="122" height="64" rx="12"/><rect x="0" y="54" width="76" height="72" rx="12"/><rect x="30" y="124" width="82" height="64" rx="12"/><rect x="0" y="176" width="62" height="62" rx="12"/></svg>`;
+document.getElementById('logoMark').innerHTML = F_MARK(19);
+
+const PF = { tiktok: ['TikTok', 'TT'], reels: ['Reels', 'IG'], shorts: ['Shorts', 'YT'], vk: ['VK Клипы', 'VK'] };
+const METHODS = { sbp: ['СБП', 'Телефон и банк', '+7 900 000-00-00, Т-Банк'], usdt: ['USDT', 'Кошелёк USDT TRC-20', 'T...'], ton: ['TON', 'Адрес TON-кошелька (и memo)', 'UQ...'] };
+const ICON = {
+  home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  submit: '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+  materials: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/>',
+  payout: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>',
+  top: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  chev: '<path d="M9 6l6 6-6 6"/>', down: '<path d="M6 9l6 6 6-6"/>', back: '<path d="M15 6l-6 6 6 6"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', upload: '<path d="M12 16V4M6 10l6-6 6 6M4 20h16"/>'
+};
+const ico = (n, s, c, w) => `<svg width="${s || 22}" height="${s || 22}" viewBox="0 0 24 24" fill="none" stroke="${c || 'currentColor'}" stroke-width="${w || 1.8}" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n) => Math.round(n || 0).toLocaleString('ru-RU');
+const kfmt = (n) => n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.0', '') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'K' : String(n || 0);
+const when = (t) => { if (!t) return ''; const d = new Date(t * 1000), now = new Date(); const hm = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }); if (d.toDateString() === now.toDateString()) return 'Сегодня, ' + hm; const y = new Date(now - 864e5); if (d.toDateString() === y.toDateString()) return 'Вчера, ' + hm; return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ', ' + hm; };
+
+async function api(path, opts) {
+  opts = opts || {};
+  const headers = Object.assign({ 'X-Init-Data': INIT }, opts.json ? { 'Content-Type': 'application/json' } : {});
+  const r = await fetch(path, { method: opts.method || 'GET', headers, body: opts.json ? JSON.stringify(opts.json) : opts.body });
+  let data = {}; try { data = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(data.error || 'Ошибка ' + r.status);
+  return data;
+}
+function toast(msg, bad) {
+  const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+
+const S = { screen: 'home', prev: 'home', me: null, views: 50000, platform: 'tiktok', method: 'sbp', shot: null, shotUrl: '', submittedId: null, paidId: null, video: null, top: null, materials: null, faqOpen: 0, playing: null, busy: false, topBy: 'views', bannerUrl: '', plaqueUrl: '', insertUrl: '', insertState: '', topUrl: '', voices: null, vPlaying: null, ideas: null, ideaSort: 'top' };
+let audioEl = null;
+
+function go(screen, extra) {
+  if (audioEl) { audioEl.pause(); audioEl = null; S.playing = null; }
+  Object.assign(S, { screen, submittedId: null, paidId: null }, extra || {});
+  haptic(); render(); document.getElementById('main').scrollTop = 0;
+  if (screen === 'top') loadTop();
+  if (screen === 'materials' && !S.materials) loadMaterials();
+  if (screen === 'ideas') loadIdeas();
+}
+async function loadMe() {
+  try { S.me = await api('/api/me'); if (!S.me.user.accepted) S.screen = 'onboard'; render(); }
+  catch (e) { document.getElementById('main').innerHTML = `<div class="screen"><div class="empty">${esc(e.message)}</div></div>`; }
+}
+async function loadIdeas() { try { S.ideas = (await api('/api/ideas?sort=' + S.ideaSort)).ideas; if (S.screen === 'ideas') render(); } catch (e) { toast(e.message, true); } }
+async function loadTop() { try { S.top = (await api('/api/top?by=' + S.topBy)).top; if (S.screen === 'top') render(); } catch (e) { toast(e.message, true); } }
+async function loadVoices() { try { S.voices = (await api('/api/voices')).items; if (S.screen === 'materials') render(); } catch (e) {} }
+async function loadMaterials() {
+  loadVoices();
+  try { S.materials = (await api('/api/materials')).items; if (S.screen === 'materials') render(); } catch (e) { toast(e.message, true); }
+  if (!S.insertUrl && S.insertState !== 'loading') {
+    S.insertState = 'loading';
+    const get = (q) => fetch('/api/insert' + q, { headers: { 'X-Init-Data': INIT } }).then(async (r) => { if (!r.ok) throw new Error(); return URL.createObjectURL(await r.blob()); });
+    get('').then((u) => { S.insertUrl = u; return get('?kind=top'); }).then((u) => { S.topUrl = u; S.insertState = 'ok'; })
+      .catch(() => { S.insertState = 'err'; }).finally(() => { if (S.screen === 'materials') render(); });
+  }
+}
+
+// ───────── Экраны ─────────
+function vOnboard() {
+  const c = S.me.config;
+  return `<div class="screen">
+  <div class="hero"><img src="/static/hero.jpg" alt=""><div class="fade"></div><div class="txt">
+    <div class="label" style="font-size:12px;letter-spacing:.14em">Партнёрская программа</div>
+    <h1>Твой ролик.<br>Наш голос.<br>Твои деньги.</h1></div></div>
+  <div class="grid2">
+    <div class="stat"><b style="color:var(--acc);font-size:22px">${c.rate} ₽</b><span>за 1 000 просмотров</span></div>
+    <div class="stat"><b style="font-size:22px">${kfmt(c.min_views)}+</b><span>порог для заявки</span></div>
+  </div>
+  ${[['Забери свои баннеры', 'Анимированные, с твоим промокодом'], ['Вставь в ролик', 'Сверху на весь ролик + в центре со звуком'], ['Сдай ролик от ' + fmt(c.min_views) + ' просмотров', 'Проверка и выплата на СБП или в крипте']].map((s, i) => `
+  <div style="display:flex;gap:14px;align-items:flex-start"><div class="num">${i + 1}</div><div><div style="font-weight:700">${s[0]}</div><div class="sub" style="margin-top:2px">${s[1]}</div></div></div>`).join('')}
+  <button class="btn" data-a="accept">Принять правила и начать</button>
+  <button class="back" style="align-self:center;text-decoration:underline" data-go="rules">Прочитать правила и FAQ</button>
+  </div>`;
+}
+
+function vHome() {
+  const m = S.me, lv = m.level, c = m.config;
+  const max = Math.max(1, ...m.chart.map((d) => d.sum));
+  const weekSum = m.chart.reduce((a, d) => a + d.sum, 0);
+  const pay = S.views < c.min_views ? 0 : Math.floor(S.views / 1000) * lv.rate;
+  const recent = m.recent.length ? m.recent.map((r) => {
+    const st = { pending: ['НА ПРОВЕРКЕ', 'var(--warn)'], approved: ['ПРИНЯТ', 'var(--ok)'], rejected: ['ОТКЛОНЁН', 'var(--bad)'] }[r.status];
+    return `<button class="row-item" data-video="${r.id}"><div class="pf">${PF[r.platform][1]}</div>
+      <div style="flex-grow:1;min-width:0"><div style="font-weight:700;font-size:15px">#${r.id} · ${fmt(r.views)} просм.</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${when(r.created)}</div></div>
+      <div style="text-align:right"><div style="font-weight:800;font-size:15px">${r.status === 'approved' ? '+' + fmt(r.amount) + ' ₽' : '—'}</div><div style="font-size:11px;font-weight:800;margin-top:3px;color:${st[1]}">${st[0]}</div></div></button>`;
+  }).join('') : `<div class="empty">Пока нет заявок. Забери материалы, вставь в ролик и сдай его, когда наберёт ${fmt(c.min_views)} просмотров.</div>`;
+  return `<div class="screen">
+  <div class="balance"><div class="shine"></div>
+    <div class="cap">Доступно к выводу</div><div class="sum">${fmt(m.balance)} ₽</div>
+    <div style="font-size:14px;font-weight:700;margin-top:4px;opacity:.75">Всего заработано: ${fmt(m.earned)} ₽${m.in_payout ? ' · в выводе ' + fmt(m.in_payout) + ' ₽' : ''}</div>
+    <div class="row"><button data-go="payout" style="border:none;background:var(--on-acc);color:var(--acc)">Вывести</button><button data-go="submit" style="border:1.5px solid var(--on-acc);background:transparent;color:var(--on-acc)">Сдать ролик</button></div>
+  </div>
+  <div class="grid3">
+    <div class="stat"><b>${kfmt(m.stats.views)}</b><span>просмотров</span></div>
+    <div class="stat"><b>${m.stats.approved}</b><span>принято</span></div>
+    <div class="stat"><b style="color:var(--warn)">${m.stats.pending}</b><span>на проверке</span></div>
+  </div>
+  <button class="card" data-go="profile" style="display:flex;flex-direction:column;gap:10px;text-align:left;cursor:pointer;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div style="display:flex;align-items:center;gap:10px"><span class="chip">${esc(lv.name)}</span><span style="font-size:13px;color:var(--muted)">уровень</span></div><span style="font-size:13px;color:var(--muted)">${esc(lv.to_next)}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${lv.pct}%"></div></div>
+    <div style="font-size:12px;color:var(--muted)">${esc(lv.hint)}</div>
+  </button>
+  ${vStreak()}
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>Заработок за неделю</b><span style="font-size:13px;color:var(--muted)">+${fmt(weekSum)} ₽</span></div>
+    <div class="chart">${m.chart.map((d, i) => `<div class="col"><div class="b ${d.sum === max && d.sum > 0 ? 'top' : ''}" style="height:${Math.max(4, d.sum / max * 100)}%;animation-delay:${i * .06}s"></div><small>${d.d}</small></div>`).join('')}</div>
+  </div>
+  <div class="card"><b>Калькулятор</b>
+    <label for="rng" style="display:block;font-size:13px;color:var(--muted);margin-top:4px">Просмотры ролика: <span id="rngV" style="color:var(--text);font-weight:700">${fmt(S.views)}</span></label>
+    <input id="rng" type="range" min="10000" max="2000000" step="1000" value="${S.views}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--muted)">Твоя выплата (${lv.rate} ₽ / 1 000)</span><span id="rngP" class="disp" style="font-size:24px;font-weight:800;color:var(--acc)">${fmt(pay)} ₽</span></div>
+  </div>
+  <b style="padding:0 4px">Последние заявки</b>${recent}
+  </div>`;
+}
+
+function startMock() {
+  const cv = document.getElementById('mockCv'); if (!cv || cv._on) return; cv._on = true;
+  const W = cv.width = 360, H = cv.height = 640, ctx = cv.getContext('2d');
+  const mk = (src) => { const v = document.createElement('video'); v.src = src; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.play().catch(() => {}); return v; };
+  const top = mk(S.topUrl), mid = mk(S.insertUrl);
+  const off = document.createElement('canvas'), oc = off.getContext('2d', { willReadFrequently: true });
+  const keyed = (v, w, h) => {
+    off.width = w; off.height = h; oc.drawImage(v, 0, 0, w, h);
+    const d = oc.getImageData(0, 0, w, h), p = d.data;
+    for (let i = 0; i < p.length; i += 4) { const r = p[i], g = p[i + 1], b = p[i + 2];
+      if ((g > 140 && g > r + 40 && b < 140 && r < 150) || (b > 170 && r < 80 && g < 130)) p[i + 3] = 0; }
+    oc.putImageData(d, 0, 0); return off;
+  };
+  const t0 = performance.now(); let shown = false;
+  const frame = () => {
+    if (!document.body.contains(cv)) { top.pause(); mid.pause(); return; }
+    const t = (performance.now() - t0) / 1000;
+    const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#2b2340'); g.addColorStop(1, '#a8573d');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.arc(W * .5 + Math.sin(t) * 60, H * .62, 70, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '800 20px Onest, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ТВОЙ РОЛИК', W / 2, H * .86);
+    if (top.readyState >= 2) ctx.drawImage(keyed(top, W, H), 0, 0);
+    const show = (t % 12) > 3 && (t % 12) < 10;
+    if (show && !shown) { try { mid.currentTime = 0; } catch (e) {} }
+    shown = show;
+    if (show && mid.readyState >= 2) { const bw = Math.round(W * .89), bh = Math.round(bw * 9 / 16); ctx.drawImage(keyed(mid, bw, bh), (W - bw) / 2, (H - bh) / 2); }
+    requestAnimationFrame(frame);
+  };
+  frame();
+}
+
+function vStreak() {
+  const ms = S.me.milestone, c = S.me.config;
+  if (S.me.stats.approved === 0 && c.first_bonus > 0) return `<div class="card" style="background:var(--acc-soft);border-color:var(--acc-line);display:flex;gap:14px;align-items:center">
+    <div style="font-size:30px">🎁</div><div><b>+${fmt(c.first_bonus)} ₽ за первый ролик</b><div style="font-size:13px;color:#C9D2B8;margin-top:3px">Сдай первый ролик — бонус придёт вместе с выплатой</div></div></div>`;
+  if (!ms || !ms.on) return '';
+  return `<div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><b>🏆 До бонуса +${fmt(ms.bonus)} ₽</b><span style="font-size:13px;color:var(--muted)">${ms.count} из ${ms.need}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${ms.count / ms.need * 100}%"></div></div>
+    <div style="font-size:12px;color:var(--muted)">За каждые ${ms.need} принятых роликов. Всего принято: ${fmt(ms.total)}</div></div>`;
+}
+
+function vSubmit() {
+  if (S.submittedId) return `<div class="screen"><div class="center"><div class="done-ico">${ico('check', 44, 'var(--on-acc)', 2.6)}</div>
+    <h2 class="h2" style="margin-top:10px">Заявка #${S.submittedId} на проверке</h2>
+    <div class="sub" style="max-width:290px">Итог посчитаем по просмотрам на момент проверки. Уведомление придёт в бот.</div>
+    <button class="btn" style="max-width:280px;margin-top:10px" data-video="${S.submittedId}">Смотреть статус</button>
+    <button class="btn-o" data-a="again">Сдать ещё один</button></div></div>`;
+  const c = S.me.config;
+  return `<div class="screen">
+  <div><h2 class="h2">Сдать ролик</h2><div class="sub">Принимаем от ${fmt(c.min_views)} просмотров. Один ролик — одна заявка.</div></div>
+  <div><span class="flabel">Площадка</span><div class="seg" style="grid-template-columns:1fr 1fr">
+    ${Object.keys(PF).map((k) => `<button class="opt ${S.platform === k ? 'on' : ''}" data-pf="${k}">${PF[k][0]}</button>`).join('')}</div></div>
+  <div><label class="flabel" for="fUrl">Ссылка на ролик</label><input class="inp" id="fUrl" type="url" inputmode="url" placeholder="https://..."></div>
+  <div><label class="flabel" for="fViews">Просмотры сейчас</label><input class="inp" id="fViews" type="number" inputmode="numeric" placeholder="например, 25000"></div>
+  <label class="drop" for="fShot" id="dropZone">${S.shotUrl ? `<img src="${S.shotUrl}" alt="Скриншот">` : ico('upload', 28, 'var(--acc)')}
+    <div style="font-weight:700;font-size:14px">${S.shot ? 'Скрин выбран — нажми, чтобы заменить' : 'Скрин статистики ролика'}</div>
+    <div style="font-size:12px;color:var(--muted)">Где видно просмотры</div></label>
+  <input id="fShot" type="file" accept="image/*" style="display:none">
+  <button class="btn" data-a="submit" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Отправляем…' : 'Отправить на проверку'}</button>
+  </div>`;
+}
+
+function vMaterials() {
+  const items = S.materials;
+  const heights = [40, 70, 55, 90, 60, 100, 75, 45, 85, 65, 95, 50, 80, 60, 100, 70, 45, 85, 55, 90, 65, 40, 75, 50];
+  let list = '<div class="skeleton"></div>';
+  if (items) {
+    const audios = items.filter((i) => i.kind === 'audio'), imgs = items.filter((i) => i.kind === 'image'), vids = items.filter((i) => i.kind === 'video');
+    list = `<div class="label">Озвучка брокера</div>` + (audios.length ? audios.map((a, idx) => `
+      <div class="audio ${S.playing === a.file ? 'on' : ''}"><button class="play" data-play="${esc(a.file)}" aria-label="Прослушать">${S.playing === a.file
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="#0A0B0D"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="#0A0B0D"><path d="M8 5v14l11-7z"/></svg>'}</button>
+        <div style="flex-grow:1;min-width:0"><div style="font-weight:700;font-size:15px">${esc(a.name)}</div>
+        <div class="wave">${heights.map((h, i) => `<i style="height:${h}%;animation-delay:${(i % 6) * .08}s"></i>`).join('')}</div></div></div>`).join('')
+      : '<div class="empty">Озвучка скоро появится</div>')
+    + (vids.length ? `<div class="label" style="margin-top:8px">Видео</div>` + vids.map((v) => `<div class="audio"><div class="pf" style="width:46px;height:46px">▶</div><div style="flex-grow:1;min-width:0"><div style="font-weight:700;font-size:15px">${esc(v.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${v.file.endsWith('.mov') ? 'с прозрачным фоном, для монтажа на компьютере' : v.name.includes('хромакей') ? 'зелёный фон — убирается в CapCut хромакеем' : 'MP4, 9:16'}</div></div></div>`).join('') : '')
+    + `<div class="label" style="margin-top:8px">Баннеры</div>` + (imgs.length ? `<div class="grid2">${imgs.map((b) => `<div><div class="banner-prev"><img src="${esc(b.url)}" alt="${esc(b.name)}"></div><div style="font-size:13px;font-weight:700;margin-top:6px">${esc(b.name)}</div></div>`).join('')}</div>`
+      : '<div class="empty">Баннеры скоро появятся</div>');
+  }
+  const G = [
+    ['ТАК', 'var(--acc-soft)', 'var(--acc)', 'Баннер сверху', 'Маленькая плашка вверху кадра — весь ролик. Не закрывает лица и субтитры.', 10, 14, 0, 100],
+    ['ТАК', 'var(--acc-soft)', 'var(--acc)', 'Баннер в центре', 'Карточка 25% экрана со звуком — в середине ролика (между 30% и 70%), целиком.', 38, 38, 42, 12],
+    ['НЕТ', '#2A1414', 'var(--bad)', 'В начале или обрезан', 'Центральный баннер в первые секунды, обрезан, ускорен или без звука — заявку отклонят.', 38, 38, 0, 5]];
+  return `<div class="screen">
+  <div><h2 class="h2">Материалы</h2><div class="sub">Обязательно оба баннера: сверху на весь ролик и в центре (со звуком) в середине ролика.</div></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><b>🎬 Твои баннеры</b><span class="chip">${esc(S.me.traffic ? S.me.traffic.promo : '')}</span></div>
+    ${S.insertState === 'err' ? '<div class="empty">Превью недоступно — баннеры пришлёт бот по кнопке ниже</div>' : `
+    <div style="display:flex;justify-content:center"><div style="position:relative;width:min(260px,100%);aspect-ratio:9/16;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#000">
+      ${S.insertUrl && S.topUrl ? '<canvas id="mockCv" style="width:100%;height:100%;display:block"></canvas>' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;padding:16px">⏳ Собираю баннеры с твоим кодом…</div>'}
+    </div></div>
+    <div style="font-size:12px;color:var(--muted);text-align:center">Так это выглядит в готовом ролике: плашка сверху весь ролик, баннер в центре (25% экрана) появляется в середине</div>`}
+    <div style="font-size:13px;color:var(--muted);line-height:1.5">Бот пришлёт 2 файла. В CapCut: <b style="color:var(--text)">Наложение</b> → добавь файл → <b style="color:var(--text)">Удалить фон → Хромакей</b> → пипеткой ткни в фон (зелёный или синий). Баннер сверху растяни на весь кадр, баннер в центре уменьши до ширины экрана и поставь по центру, в середину ролика, со звуком.</div>
+    <button class="btn" data-a="sendMat">Получить баннеры в чат</button>
+  </div>
+  ${S.voices && S.voices.length ? `<div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <b>🎙 Озвучка твоего баннера</b>
+    <div style="font-size:13px;color:var(--muted)">Выбери вариант — баннер соберётся с ним.</div>
+    ${S.voices.map((v) => `<div class="audio ${v.chosen ? 'on' : ''}" style="padding:10px 12px">
+      <button class="play" data-vp="${esc(v.file)}" style="width:40px;height:40px" aria-label="Слушать">${S.vPlaying === v.file
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0A0B0D"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0A0B0D"><path d="M8 5v14l11-7z"/></svg>'}</button>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;line-height:1.35">${esc(v.text)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(v.voice)}${v.main ? ' · основная' : ''}</div></div>
+      ${v.chosen ? '<span class="chip">✓</span>' : `<button class="sbtn" data-vsel="${esc(v.file)}" style="height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--acc-line);background:transparent;color:var(--acc);font-weight:800;font-size:12px;cursor:pointer">Выбрать</button>`}
+    </div>`).join('')}
+  </div>` : ''}
+  ${list}
+  <div class="label" style="margin-top:8px">Как правильно вставить</div>
+  ${G.map((g) => `<div class="guide"><div class="phone"><div class="ln" style="right:18px;top:12px"></div><div class="ln" style="right:28px;top:20px"></div>
+    <div class="bn" style="top:${g[5]}px;height:${g[6]}px;border:1.5px solid ${g[2]}">${F_MARK(12)}</div></div>
+    <div style="flex-grow:1;min-width:0;display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px"><span class="tag" style="background:${g[1]};color:${g[2]}">${g[0]}</span><b style="font-size:14px">${g[3]}</b></div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.45">${g[4]}</div>
+    <div class="tl"><i style="left:${g[7]}%;width:${g[8]}%;background:${g[2]}"></i></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim)"><span>начало ролика</span><span>конец</span></div></div></div>`).join('')}
+  </div>`;
+}
+
+function vPayout() {
+  const m = S.me, c = m.config, md = METHODS[S.method];
+  if (S.paidId) return `<div class="screen"><div class="center"><div class="done-ico">${ico('check', 44, 'var(--on-acc)', 2.6)}</div>
+    <h2 class="h2" style="margin-top:10px">Заявка на вывод #${S.paidId}</h2><div class="sub" style="max-width:290px">Деньги придут в течение 24–48 часов. Статус увидишь в боте.</div>
+    <button class="btn-o" data-go="home">На главную</button></div></div>`;
+  const can = m.balance >= c.min_payout;
+  return `<div class="screen">
+  <div><h2 class="h2">Вывод</h2><div class="sub">Минимум ${fmt(c.min_payout)} ₽. Срок 24–48 часов.</div></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--muted);font-size:14px">Доступно</span><span class="disp" style="font-size:24px;font-weight:800;color:var(--acc)">${fmt(m.balance)} ₽</span></div>
+  ${can ? `<div><span class="flabel">Способ</span><div class="tabs">${Object.keys(METHODS).map((k) => `<button class="${S.method === k ? 'on' : ''}" data-m="${k}">${METHODS[k][0]}</button>`).join('')}</div></div>
+  <div><label class="flabel" for="pDet">${md[1]}</label><input class="inp" id="pDet" type="text" placeholder="${esc(md[2])}"></div>
+  <div><label class="flabel" for="pSum">Сумма, ₽</label><div style="display:flex;gap:8px"><input class="inp" id="pSum" type="number" inputmode="numeric" placeholder="${c.min_payout}" style="flex:1;min-width:0"><button class="btn-o" data-a="all" style="padding:0 16px">Всё</button></div></div>
+  <button class="btn" data-a="pay" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Создаём заявку…' : 'Вывести'}</button>`
+  : `<div class="card"><b>До вывода ещё ${fmt(c.min_payout - m.balance)} ₽</b><div class="bar-track" style="margin-top:12px"><div class="bar-fill" style="width:${Math.min(100, m.balance / c.min_payout * 100)}%"></div></div><div class="sub">Сдавай ролики — вывод откроется с ${fmt(c.min_payout)} ₽ на балансе.</div></div>
+  <button class="btn" data-go="submit">Сдать ролик</button>`}
+  </div>`;
+}
+
+function vTop() {
+  const t = S.top;
+  const byC = S.topBy === 'clients';
+  return `<div class="screen"><div><h2 class="h2">Топ недели</h2><div class="sub">${byC ? 'Кто привёл больше всего клиентов в обменник за 7 дней.' : 'Рейтинг авторов по принятым просмотрам за 7 дней.'}</div></div>
+  <div class="tabs" style="grid-template-columns:1fr 1fr"><button class="${byC ? '' : 'on'}" data-top="views">Просмотры</button><button class="${byC ? 'on' : ''}" data-top="clients">Клиенты</button></div>
+  ${!t ? '<div class="skeleton"></div>' : !t.length ? '<div class="empty">На этой неделе ещё никого. Стань первым.</div>' : t.map((r) => `
+  <div class="row-item" style="cursor:default;${r.me ? 'background:var(--acc-soft);border-color:var(--acc)' : ''}">
+    <div style="width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:${r.rank <= 3 ? 'var(--acc)' : 'var(--line)'};color:${r.rank <= 3 ? 'var(--on-acc)' : 'var(--text)'}">${r.rank}</div>
+    <div style="flex-grow:1;min-width:0"><div style="font-weight:700;font-size:15px">${r.me ? 'Ты' : esc(r.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${byC ? r.came + ' пришло в обменник' : kfmt(r.views) + ' просмотров'}</div></div>
+    <div class="disp" style="font-weight:800;font-size:15px;color:var(--acc)">${byC ? r.exchanged + ' обм.' : fmt(r.amount) + ' ₽'}</div></div>`).join('')}</div>`;
+}
+
+function vProfile() {
+  const m = S.me, lv = m.level, r = m.ref, c = m.config;
+  const name = m.user.username ? '@' + m.user.username : (m.user.first_name || 'Автор');
+  const since = m.user.created ? new Date(m.user.created * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) : '';
+  return `<div class="screen">
+  <div style="display:flex;align-items:center;gap:14px"><div style="width:60px;height:60px;border-radius:50%;background:var(--surf2);border:2px solid var(--acc);display:flex;align-items:center;justify-content:center" class="disp"><b style="font-size:22px">${esc((m.user.first_name || 'A')[0].toUpperCase())}</b></div>
+    <div><div class="disp" style="font-weight:800;font-size:20px">${esc(name)}</div><div style="font-size:13px;color:var(--muted);margin-top:2px">В партнёрке с ${since} · ID ${m.user.id}</div></div></div>
+  ${vTotals()}
+  <div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><b>Уровень автора</b><span style="font-size:13px;color:var(--muted)">${kfmt(lv.views)} просмотров</span></div>
+    ${m.levels.map((l, i) => `<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;border:1px solid ${i === lv.idx ? 'var(--acc-line)' : 'var(--line)'};background:${i === lv.idx ? 'var(--acc-soft)' : 'transparent'}">
+      <div style="width:36px;height:36px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;background:${i <= lv.idx ? 'var(--acc)' : 'var(--surf2)'};color:${i <= lv.idx ? 'var(--on-acc)' : 'var(--dim)'}">${i + 1}</div>
+      <div style="flex-grow:1;min-width:0"><div style="font-weight:800;font-size:15px">${l.name} <span style="font-weight:600;font-size:12px;color:var(--muted)">· от ${kfmt(l.from)}</span></div><div style="font-size:12px;color:var(--muted);margin-top:2px">${l.perk}</div></div>
+      <div class="disp" style="font-weight:800;color:${i === lv.idx ? 'var(--acc)' : 'var(--muted)'}">${l.rate} ₽</div></div>`).join('')}
+    <div class="bar-track"><div class="bar-fill" style="width:${lv.pct}%"></div></div><div style="font-size:12px;color:var(--muted)">${esc(lv.to_next)}</div>
+  </div>
+  ${vTraffic()}
+  <div class="card" style="background:var(--acc-soft);border-color:var(--acc-line);display:flex;flex-direction:column;gap:12px">
+    <div class="disp" style="font-weight:800;font-size:18px">Приводи авторов</div>
+    <div style="font-size:14px;color:#C9D2B8;line-height:1.5">Получай <b style="color:var(--acc)">${c.ref_pct}%</b> от выплат каждого приглашённого автора в первые ${c.ref_days} дней. У друга ставка не уменьшается.</div>
+    <div style="display:flex;gap:8px;align-items:center;padding:6px 6px 6px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--acc-bar)">
+      <div style="flex-grow:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.link.replace('https://', ''))}</div>
+      <button data-a="copy" style="flex-shrink:0;height:38px;padding:0 14px;border:none;border-radius:10px;background:var(--acc);color:var(--on-acc);font-weight:800;font-size:13px;cursor:pointer">Копировать</button></div>
+    <button class="btn-o" data-a="share" style="width:100%">Отправить другу</button>
+    <div class="grid3">${[[r.invited, 'приглашено'], [r.active, 'активных'], [fmt(r.earned) + ' ₽', 'с рефералов']].map((x, i) => `<div style="padding:10px;border-radius:12px;background:var(--bg)"><div class="disp" style="font-weight:800;font-size:17px;${i === 2 ? 'color:var(--acc)' : ''}">${x[0]}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${x[1]}</div></div>`).join('')}</div>
+  </div>
+  <div class="menu-list">
+    <button data-go="ideas">💡 Идеи для бота${ico('chev', 18, '#9BA3A0', 2)}</button>
+    <button data-go="rules">Правила и FAQ${ico('chev', 18, '#9BA3A0', 2)}</button>
+    <button data-go="payout">Вывод и реквизиты${ico('chev', 18, '#9BA3A0', 2)}</button>
+    <button data-a="aiSupport">Задать вопрос поддержке${ico('chev', 18, '#9BA3A0', 2)}</button>
+    ${c.authors_chat ? `<button data-a="authorsChat">Чат авторов${ico('chev', 18, '#9BA3A0', 2)}</button>` : ''}
+  </div></div>`;
+}
+
+function vTotals() {
+  const t = S.me.totals; if (!t) return '';
+  const cells = [[t.submitted, 'роликов сдано'], [t.approved, 'принято'], [kfmt(t.views), 'просмотров'],
+    [fmt(t.earned) + ' ₽', 'заработано'], [fmt(t.paid_out) + ' ₽', 'выведено'], [t.clients, 'клиентов']];
+  return `<div class="grid3">${cells.map((c, i) => `<div class="stat"><b style="font-size:16px;${i === 3 ? 'color:var(--acc)' : ''}">${c[0]}</b><span>${c[1]}</span></div>`).join('')}</div>`;
+}
+
+function vIdeas() {
+  const list = S.ideas;
+  return `<div class="screen">
+  <button class="back" data-go="profile">${ico('back', 18, 'currentColor', 2)}Профиль</button>
+  <div><h2 class="h2">Идеи для бота</h2><div class="sub">Предлагай, что добавить или улучшить. Голосуй за чужие идеи — самые популярные добавим.</div></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <label class="flabel" for="ideaTxt" style="margin:0">Твоя идея</label>
+    <textarea id="ideaTxt" maxlength="300" rows="3" placeholder="Например: конкурс на лучший ролик месяца" style="width:100%;border-radius:14px;border:1px solid var(--line2);background:var(--bg);color:var(--text);padding:12px 14px;font-size:15px;font-family:inherit;resize:none;outline:none"></textarea>
+    <button class="btn" data-a="addIdea" style="height:48px" ${S.busy ? 'disabled' : ''}>Предложить</button>
+  </div>
+  <div class="tabs" style="grid-template-columns:1fr 1fr"><button class="${S.ideaSort === 'top' ? 'on' : ''}" data-isort="top">Популярные</button><button class="${S.ideaSort === 'new' ? 'on' : ''}" data-isort="new">Новые</button></div>
+  ${!list ? '<div class="skeleton"></div>' : !list.length ? '<div class="empty">Идей пока нет — предложи первую.</div>' : list.map((i) => {
+    const sc = { new: ['var(--muted)', 'var(--surf2)'], progress: ['var(--warn)', '#2A2210'], done: ['var(--acc)', 'var(--acc-soft)'] }[i.status] || ['var(--muted)', 'var(--surf2)'];
+    return `<div class="card" style="display:flex;gap:12px;padding:14px">
+      <button data-like="${i.id}" aria-label="Нравится" style="flex-shrink:0;width:52px;border-radius:14px;border:1.5px solid ${i.liked ? 'var(--acc)' : 'var(--line2)'};background:${i.liked ? 'var(--acc-soft)' : 'transparent'};color:${i.liked ? 'var(--acc)' : 'var(--muted)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:8px 0;transition:all .2s">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="${i.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+        <b style="font-size:14px">${i.likes}</b></button>
+      <div style="flex-grow:1;min-width:0">
+        <div style="font-size:15px;line-height:1.45;word-wrap:break-word">${esc(i.text)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap"><span class="tag" style="background:${sc[1]};color:${sc[0]}">${esc(i.status_name)}</span><span style="font-size:12px;color:var(--muted)">${i.own ? 'твоя идея' : esc(i.author)}</span></div>
+      </div></div>`; }).join('')}
+  </div>`;
+}
+
+function vTraffic() {
+  const t = S.me.traffic; if (!t) return '';
+  const P = [['tiktok', 'tt', 'TikTok'], ['reels', 'ig', 'Reels'], ['shorts', 'yt', 'Shorts'], ['vk', 'vk', 'VK']];
+  const pr = t.by.promo || { came: 0, exchanged: 0 };
+  return `<div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><b>Мои клиенты в обменнике</b>${S.me.config.client_reward > 0 ? `<span style="font-size:13px;color:var(--acc);font-weight:800">+${fmt(t.earned)} ₽</span>` : ''}</div>
+    <div style="display:flex;gap:8px;align-items:center;padding:6px 6px 6px 14px;border-radius:14px;background:var(--bg);border:1px solid var(--acc-bar)">
+      <div style="flex-grow:1;font-size:12px;color:var(--muted)">Промокод<div class="disp" style="font-size:20px;font-weight:800;color:var(--acc);letter-spacing:.04em">${esc(t.promo)}</div></div>
+      <button data-copy="${esc(t.promo)}" style="height:38px;padding:0 14px;border:none;border-radius:10px;background:var(--acc);color:var(--on-acc);font-weight:800;font-size:13px;cursor:pointer">Копировать</button></div>
+    ${t.promo_paused ? `<div style="padding:10px 12px;border-radius:12px;background:#2A2210;border:1px solid #5A4416;font-size:13px;line-height:1.45">⏸ Код на паузе — мы проверяем активность. Вопросы — ${esc(S.me.config.support)}</div>`
+      : !t.promo_on ? '<div style="font-size:13px;color:var(--muted)">Скидки по промокодам сейчас не действуют, но код учитывает, кого ты привёл.</div>'
+      : `<div style="font-size:13px;color:var(--muted);line-height:1.5">${t.mode === 'cashback' ? `Новый клиент меняет по твоему коду (от ${fmt(t.promo_min)} ₽) и получает <b style="color:var(--text)">кэшбэк ${fmt(t.promo_discount)} ₽</b> на второй обмен.` : `Клиент получает <b style="color:var(--text)">−${fmt(t.promo_discount)} ₽</b> на обмен от ${fmt(t.promo_min)} ₽.`} Кто первый — того и тапки. Один раз на человека. Свой код применять нельзя — бан.</div>`}
+    ${vCodes(t)}
+    <div class="grid3">${[[t.came, 'пришло'], [t.exchanged, 'обменяли'], [t.came ? Math.round(t.exchanged / t.came * 100) + '%' : '—', 'конверсия']].map((x) => `<div style="padding:10px;border-radius:12px;background:var(--bg)"><div class="disp" style="font-weight:800;font-size:17px">${x[0]}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${x[1]}</div></div>`).join('')}</div>
+    <div style="font-size:13px;color:var(--muted)">Ссылки для описания и профиля — у каждой площадки своя, так видно, откуда пришёл клиент:</div>
+    ${P.map((p) => { const b = t.by[p[1]] || { came: 0, exchanged: 0 }; return `<div style="display:flex;align-items:center;gap:10px;padding:10px 10px 10px 12px;border-radius:14px;border:1px solid var(--line)">
+      <div class="pf" style="width:34px;height:34px;font-size:11px">${PF[p[0]][1]}</div>
+      <div style="flex-grow:1;min-width:0"><div style="font-weight:700;font-size:14px">${p[2]}</div><div style="font-size:12px;color:var(--muted)">${b.came} пришло · ${b.exchanged || 0} обменяли</div></div>
+      <button data-copy="${esc(t.links[p[0]])}" style="height:34px;padding:0 12px;border:1px solid var(--acc-line);border-radius:10px;background:transparent;color:var(--acc);font-weight:800;font-size:12px;cursor:pointer">Ссылка</button></div>`; }).join('')}
+    <div style="font-size:12px;color:var(--muted)">По промокоду: пришли ${pr.came} · обменяли ${pr.exchanged || 0}.${S.me.config.client_reward > 0 ? ` За первый обмен каждого нового клиента — +${fmt(S.me.config.client_reward)} ₽.` : ''}</div>
+  </div>`;
+}
+
+function vCodes(t) {
+  if (!t.codes || !t.codes.length) return '';
+  const SN = { active: ['активен', 'var(--acc)'], exhausted: ['разобрали', 'var(--warn)'], expired: ['истёк', 'var(--muted)'], paused: ['на паузе', 'var(--warn)'], closed: ['закрыт', 'var(--muted)'] };
+  const cur = t.codes.find((c) => c.current) || t.codes[0];
+  const pct = cur.max ? Math.min(100, cur.used / cur.max * 100) : 0;
+  const till = cur.expires ? new Date(cur.expires * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '';
+  return `<div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;justify-content:space-between;font-size:13px"><span>Активации: <b>${cur.used} из ${cur.max}</b></span><span style="color:${SN[cur.state][1]};font-weight:800">${SN[cur.state][0]}${cur.state === 'active' && till ? ' · до ' + till : ''}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+    ${t.can_new ? '<button class="btn-o" data-a="newCode" style="width:100%">🎟 Получить новый код</button>' : `<div style="font-size:12px;color:var(--muted)">${esc(t.why_not)}</div>`}
+    ${t.codes.length > 1 ? `<div style="font-size:12px;color:var(--muted)">Прошлые: ${t.codes.filter((c) => !c.current).map((c) => `${esc(c.code)} (${c.used}/${c.max}, ${SN[c.state][0]})`).join(' · ')}</div>` : ''}
+  </div>`;
+}
+
+function vRules() {
+  const c = S.me.config;
+  const faq = [
+    ['Почему могут отклонить заявку?', `Чаще всего: меньше ${fmt(c.min_views)} просмотров на момент проверки, нет одного из баннеров; центральный баннер обрезан, ускорен, без звука или не в середине ролика; накрутка; ролик разбит на части. Причина приходит в бот вместе с решением.`],
+    ['Как считаются деньги?', `Только полные тысячи: 10 900 просмотров = 10 тысяч = ${10 * c.rate} ₽. Считаем по просмотрам на момент проверки. На уровне «Брокер» ставка выше.`],
+    ['Ролик вырос после проверки. Доплатите?', 'Нет, доначислений нет. Выгоднее сдавать ролик, когда он уже набрал основные просмотры.'],
+    ['Когда придут деньги?', `Вывод обрабатываем за 24–48 часов. Минимум ${fmt(c.min_payout)} ₽. Способы: СБП, USDT TRC-20 или TON.`],
+    ['Что считается накруткой?', 'Купленные просмотры, боты, резкий скачок просмотров без лайков и комментариев. Первый раз — отказ и предупреждение, второй — бан в партнёрке.'],
+    ['Площадка заблокировала аккаунт. Что делать?', 'За блокировки площадок мы не отвечаем, но принятые ролики остаются оплаченными. Не скрывай, что это реклама, и ставь пометку, если площадка требует.'],
+    ['Что такое мой промокод?', `Твой личный код стоит на баннерах. После первого принятого ролика он становится скидкой ${fmt((S.me.traffic || {}).promo_discount || 0)} ₽ на обмен от ${fmt((S.me.traffic || {}).promo_min || 0)} ₽ в FocusPay — один раз на человека, лимит активаций на коде. В профиле видно, сколько людей пришло и сколько обменяли.${c.client_reward > 0 ? ` За первый обмен каждого нового клиента — +${fmt(c.client_reward)} ₽.` : ''}`],
+    ['Можно ли самому применить свой промокод?', 'Нет. Применять свой код самому, со вторых аккаунтов или через знакомых запрещено — система это видит: код блокируется, автор получает бан. Если код часто применяют за короткое время, он автоматически встаёт на паузу до проверки.'],
+    ['Какие есть бонусы?', `+${fmt(c.first_bonus)} ₽ за первый принятый ролик и +${fmt(c.milestone_bonus)} ₽ за каждые ${c.milestone_n} принятых роликов. Плюс рефералка.`],
+    ['Можно предложить идею для бота?', 'Да! Профиль → «Идеи для бота». Предлагай и голосуй за идеи других — самые популярные мы добавляем, а автору приходит уведомление.'],
+    ['Как работает реферальная программа?', `Друг регистрируется по твоей ссылке — ты получаешь ${c.ref_pct}% от его выплат за ролики в первые ${c.ref_days} дней. Его ставка не уменьшается: бонус платим мы.`]];
+  return `<div class="screen">
+  <button class="back" data-a="back">${ico('back', 18, 'currentColor', 2)}Назад</button>
+  <h2 class="h2">Правила и FAQ</h2>
+  <div class="grid2">${[[fmt(c.min_views) + '+', 'просмотров — минимум для заявки'], [c.rate + ' ₽', 'за каждую полную 1 000 просмотров'], ['2 баннера', 'сверху весь ролик + в центре со звуком'], ['24–48 ч', 'вывод от ' + fmt(c.min_payout) + ' ₽, СБП или крипта']].map((k) => `<div class="stat"><b style="color:var(--acc);font-size:16px">${k[0]}</b><span style="line-height:1.4">${k[1]}</span></div>`).join('')}</div>
+  <div class="label">Частые вопросы</div>
+  <div class="menu-list">${faq.map((f, i) => `<div class="faq ${S.faqOpen === i ? 'open' : ''}"><button data-faq="${i}">${f[0]}${ico('down', 18, '#9BA3A0', 2)}</button><div class="a">${f[1]}</div></div>`).join('')}</div>
+  <div class="sub">Обменник: ${esc(c.exchange)} · Поддержка: ${esc(c.support)}</div>
+  </div>`;
+}
+
+function vStatus() {
+  const v = S.video;
+  if (!v) return '<div class="screen"><div class="skeleton"></div></div>';
+  const done = { bg: 'var(--acc)', bd: 'var(--acc)', c: 'var(--on-acc)', m: '✓', t: 'var(--text)' }, cur = { bg: 'var(--acc-soft)', bd: 'var(--acc)', c: 'var(--acc)', m: '•', t: 'var(--acc)', cls: 'cur' },
+    wait = { bg: 'var(--surf)', bd: 'var(--line2)', c: 'var(--dim)', m: '', t: 'var(--dim)' }, fail = { bg: 'var(--bad)', bd: 'var(--bad)', c: 'var(--on-acc)', m: '!', t: 'var(--bad)' };
+  let steps, note, noteBg, noteBd;
+  if (v.status === 'approved') {
+    steps = [[done, 'Заявка отправлена', when(v.created)], [done, 'Просмотры проверены', 'Засчитано ' + fmt(v.views_final)], [done, 'Вставка проверена', 'Озвучка и баннер на месте'], [done, 'Принята', '+' + fmt(v.amount) + ' ₽ на баланс · ' + when(v.decided)]];
+    note = `Деньги уже на балансе. Вывести можно от ${fmt(S.me.config.min_payout)} ₽ во вкладке «Вывод».`; noteBg = 'var(--acc-soft)'; noteBd = 'var(--acc-line)';
+  } else if (v.status === 'rejected') {
+    steps = [[done, 'Заявка отправлена', when(v.created)], [done, 'Проверка', v.views_final ? 'По факту ' + fmt(v.views_final) + ' просмотров' : 'Проверили ролик'], [fail, 'Отклонена', 'Причина: ' + (v.reason || 'не соответствует правилам')]];
+    note = 'Если ролик был ниже порога — его можно сдать заново, когда наберёт. Вопросы — в поддержку.'; noteBg = '#2A1414'; noteBd = '#5A2626';
+  } else {
+    steps = [[done, 'Заявка отправлена', when(v.created)], [cur, 'Проверяем просмотры', 'Сверяем со скрином и самим роликом'], [wait, 'Проверка вставки', 'Озвучка + баннер от 5 секунд'], [wait, 'Решение', 'Придёт уведомление в бот']];
+    note = 'Обычно проверяем в течение 24 часов. Повторно отправлять не нужно.'; noteBg = 'var(--surf2)'; noteBd = 'var(--line)';
+  }
+  const sumTxt = v.status === 'approved' ? '+' + fmt(v.amount) + ' ₽' : v.status === 'rejected' ? '0 ₽' : '—';
+  return `<div class="screen">
+  <button class="back" data-go="home">${ico('back', 18, 'currentColor', 2)}На главную</button>
+  <div class="card" style="display:flex;align-items:center;gap:14px"><div class="pf" style="width:48px;height:48px;font-size:13px">${PF[v.platform][1]}</div>
+    <div style="flex-grow:1;min-width:0"><div class="disp" style="font-weight:800;font-size:18px">Заявка #${v.id}</div><div style="font-size:13px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fmt(v.views_final || v.views_claimed)} просм. · ${PF[v.platform][0]}</div></div>
+    <div class="disp" style="font-weight:800;font-size:17px;color:${v.status === 'approved' ? 'var(--acc)' : v.status === 'rejected' ? 'var(--bad)' : 'var(--muted)'}">${sumTxt}</div></div>
+  <div class="card" style="padding-bottom:6px">${steps.map((s, i) => `<div class="step"><div class="l"><div class="dot ${s[0].cls || ''}" style="background:${s[0].bg};border-color:${s[0].bd};color:${s[0].c}">${s[0].m}</div>
+    <div class="vline" style="background:${i === steps.length - 1 ? 'transparent' : s[0] === done ? 'var(--acc-line)' : 'var(--line)'}"></div></div>
+    <div style="padding:3px 0 18px"><div style="font-weight:800;font-size:15px;color:${s[0].t}">${s[1]}</div><div style="font-size:13px;color:var(--muted);margin-top:3px;line-height:1.45">${esc(s[2])}</div></div></div>`).join('')}</div>
+  <div style="padding:14px 16px;border-radius:16px;background:${noteBg};border:1px solid ${noteBd};font-size:14px;line-height:1.5">${note}</div>
+  </div>`;
+}
+
+const VIEWS = { ideas: vIdeas, onboard: vOnboard, home: vHome, submit: vSubmit, materials: vMaterials, payout: vPayout, top: vTop, profile: vProfile, rules: vRules, status: vStatus };
+const TABS = [['home', 'Главная'], ['submit', 'Сдать'], ['materials', 'Материалы'], ['payout', 'Вывод'], ['top', 'Топ']];
+
+function render() {
+  if (!S.me) return;
+  const sc = S.screen, onboard = sc === 'onboard' || (!S.me.user.accepted && sc === 'rules');
+  document.getElementById('main').innerHTML = VIEWS[sc]();
+  document.getElementById('hdrR').innerHTML = onboard ? '' :
+    (sc !== 'home' ? `<div class="pill">${fmt(S.me.balance)} ₽</div>` : '') +
+    `<button class="avatar ${sc === 'profile' || sc === 'rules' || sc === 'ideas' ? 'on' : ''}" data-go="profile" aria-label="Профиль">${ico('user', 18, '#F2F4F3')}</button>`;
+  const nav = document.getElementById('nav');
+  nav.style.display = onboard ? 'none' : 'grid';
+  nav.innerHTML = TABS.map((t) => `<button class="${sc === t[0] ? 'on' : ''}" data-go="${t[0]}">${ico(t[0])}${t[1]}</button>`).join('');
+  bindInputs();
+  if (S.screen === 'materials') startMock();
+}
+
+function bindInputs() {
+  const rng = document.getElementById('rng');
+  if (rng) rng.oninput = (e) => {
+    S.views = +e.target.value; const r = S.me.level.rate;
+    document.getElementById('rngV').textContent = fmt(S.views);
+    document.getElementById('rngP').textContent = fmt(S.views < S.me.config.min_views ? 0 : Math.floor(S.views / 1000) * r) + ' ₽';
+  };
+  const shot = document.getElementById('fShot');
+  if (shot) shot.onchange = (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    S.shot = f; S.shotUrl = URL.createObjectURL(f);
+    const url = document.getElementById('fUrl').value, views = document.getElementById('fViews').value;
+    render(); document.getElementById('fUrl').value = url; document.getElementById('fViews').value = views;
+  };
+}
+
+// ───────── Действия ─────────
+const ACTIONS = {
+  async accept() { try { await api('/api/accept', { method: 'POST' }); okHaptic(); await loadMe(); go('home'); } catch (e) { toast(e.message, true); } },
+  again() { S.shot = null; S.shotUrl = ''; go('submit'); },
+  async submit() {
+    const url = document.getElementById('fUrl').value.trim(), views = document.getElementById('fViews').value;
+    if (!url) return toast('Вставь ссылку на ролик', true);
+    if (!views) return toast('Укажи просмотры', true);
+    if (!S.shot) return toast('Прикрепи скрин статистики', true);
+    const fd = new FormData(); fd.append('platform', S.platform); fd.append('url', url); fd.append('views', views); fd.append('screenshot', S.shot);
+    S.busy = true; render(); document.getElementById('fUrl').value = url; document.getElementById('fViews').value = views;
+    try { const r = await api('/api/submit', { method: 'POST', body: fd }); okHaptic(); S.busy = false; S.shot = null; S.shotUrl = ''; S.submittedId = r.id; render(); loadMe(); }
+    catch (e) { S.busy = false; render(); document.getElementById('fUrl').value = url; document.getElementById('fViews').value = views; toast(e.message, true); }
+  },
+  all() { document.getElementById('pSum').value = S.me.balance; },
+  async pay() {
+    const details = document.getElementById('pDet').value.trim(), amount = +document.getElementById('pSum').value;
+    if (!details) return toast('Укажи реквизиты', true);
+    S.busy = true; render();
+    try { const r = await api('/api/payout', { method: 'POST', json: { method: S.method, details, amount } }); okHaptic(); S.busy = false; S.paidId = r.id; await loadMe(); }
+    catch (e) { S.busy = false; render(); document.getElementById('pDet').value = details; document.getElementById('pSum').value = amount || ''; toast(e.message, true); }
+  },
+  async sendMat() { try { const r = await api('/api/materials/send', { method: 'POST' }); okHaptic(); toast(r.count ? 'Отправили ' + r.count + ' файл(ов) в чат с ботом' : 'Материалов пока нет'); } catch (e) { toast(e.message, true); } },
+  copy() {
+    const link = S.me.ref.link;
+    (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => { okHaptic(); toast('Ссылка скопирована'); })
+      .catch(() => { prompt('Скопируй ссылку:', link); });
+  },
+  share() {
+    const link = S.me.ref.link, text = 'Партнёрка Focus Pay: вставляешь озвучку в ролики и получаешь деньги за просмотры';
+    const url = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text);
+    if (tg) tg.openTelegramLink(url); else window.open(url, '_blank');
+  },
+  support() { const u = 'https://t.me/' + S.me.config.support.replace('@', ''); if (tg) tg.openTelegramLink(u); else window.open(u, '_blank'); },
+  aiSupport() { toast('Напиши вопрос боту в чат — ответит ИИ-поддержка'); const u = 'https://t.me/' + S.me.config.bot; setTimeout(() => { if (tg) { tg.openTelegramLink(u); tg.close(); } else window.open(u, '_blank'); }, 700); },
+  authorsChat() { const u = S.me.config.authors_chat; if (tg) tg.openTelegramLink(u); else window.open(u, '_blank'); },
+  back() { go(S.prev || 'profile'); },
+  async newCode() {
+    try { const r = await api('/api/me/promo/new', { method: 'POST', json: {} }); okHaptic(); toast('Новый код: ' + r.code + ' — баннеры обновятся'); S.insertUrl = ''; S.topUrl = ''; S.insertState = ''; S.materials = null; await loadMe(); }
+    catch (e) { toast(e.message, true); }
+  },
+  async addIdea() {
+    const el = document.getElementById('ideaTxt'), text = el.value.trim();
+    if (text.length < 10) return toast('Опиши идею подробнее', true);
+    S.busy = true;
+    try { await api('/api/ideas', { method: 'POST', json: { text } }); okHaptic(); toast('Идея отправлена 💡'); S.ideaSort = 'new'; S.busy = false; await loadIdeas(); }
+    catch (e) { S.busy = false; toast(e.message, true); }
+  }
+};
+
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-vp],[data-vsel],[data-go],[data-a],[data-pf],[data-m],[data-video],[data-faq],[data-play],[data-copy],[data-top],[data-like],[data-isort]');
+  if (!el) return;
+  const d = el.dataset;
+  if (d.go) { if (d.go === 'rules') S.prev = S.screen === 'rules' ? S.prev : S.screen; return go(d.go); }
+  if (d.vp) {
+    if (audioEl) audioEl.pause();
+    if (S.vPlaying === d.vp) { S.vPlaying = null; audioEl = null; return render(); }
+    try { const r = await fetch('/api/voice/' + encodeURIComponent(d.vp), { headers: { 'X-Init-Data': INIT } }); audioEl = new Audio(URL.createObjectURL(await r.blob())); audioEl.onended = () => { S.vPlaying = null; render(); }; audioEl.play(); S.vPlaying = d.vp; haptic(); } catch (err) { toast('Не воспроизвелось', true); }
+    return render();
+  }
+  if (d.vsel) {
+    try { await api('/api/voice/select', { method: 'POST', json: { file: d.vsel } }); okHaptic(); toast('Озвучка выбрана — пересобираю баннер'); S.insertUrl = ''; S.topUrl = ''; S.insertState = ''; await loadVoices(); loadMaterials(); } catch (err) { toast(err.message, true); }
+    return;
+  }
+  if (d.a) return ACTIONS[d.a]();
+  if (d.copy) { const v = d.copy; (navigator.clipboard ? navigator.clipboard.writeText(v) : Promise.reject()).then(() => { okHaptic(); toast('Скопировано'); }).catch(() => prompt('Скопируй:', v)); return; }
+  if (d.like) {
+    const i = S.ideas.find((x) => x.id === +d.like); if (!i) return;
+    i.liked = !i.liked; i.likes += i.liked ? 1 : -1; haptic(); render();
+    try { const r = await api('/api/ideas/' + i.id + '/like', { method: 'POST' }); i.liked = r.liked; i.likes = r.likes; render(); } catch (err) { toast(err.message, true); loadIdeas(); }
+    return;
+  }
+  if (d.isort) { S.ideaSort = d.isort; S.ideas = null; haptic(); render(); return loadIdeas(); }
+  if (d.top) { S.topBy = d.top; S.top = null; haptic(); render(); return loadTop(); }
+  if (d.pf) { S.platform = d.pf; haptic(); const u = document.getElementById('fUrl').value, v = document.getElementById('fViews').value; render(); document.getElementById('fUrl').value = u; document.getElementById('fViews').value = v; return; }
+  if (d.m) { S.method = d.m; haptic(); return render(); }
+  if (d.faq) { const i = +d.faq; S.faqOpen = S.faqOpen === i ? -1 : i; haptic(); return render(); }
+  if (d.video) { S.video = null; go('status'); try { S.video = await api('/api/video/' + d.video); render(); } catch (err) { toast(err.message, true); } return; }
+  if (d.play) {
+    const f = d.play;
+    if (S.playing === f) { audioEl && audioEl.pause(); audioEl = null; S.playing = null; return render(); }
+    if (audioEl) audioEl.pause();
+    const item = S.materials.find((x) => x.file === f);
+    audioEl = new Audio(item.url); audioEl.onended = () => { S.playing = null; audioEl = null; render(); };
+    audioEl.play().catch(() => toast('Не удалось воспроизвести', true));
+    S.playing = f; haptic(); return render();
+  }
+});
+
+loadMe();
+</script>
+</body>
+</html>

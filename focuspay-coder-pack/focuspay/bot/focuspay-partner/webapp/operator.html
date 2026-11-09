@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Focus Pay — Оператор</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0B0D; --surf:#141619; --surf2:#1C1F23; --line:#24282D; --line2:#2A2F35;
+  --text:#F2F4F3; --muted:#9BA3A0; --dim:#6B726F;
+  --acc:#C6FF3D; --on-acc:#0A0B0D; --acc-soft:#1A2110; --acc-line:#3D4D17; --acc-bar:#2E3A14;
+  --warn:#FFB547; --ok:#5EE3A0; --bad:#FF6B6B;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Manrope,'Segoe UI',system-ui,sans-serif}
+button{font-family:inherit;color:inherit}
+input{font-family:inherit}
+input::placeholder{color:#6B726F}
+.disp{font-family:Onest,Manrope,sans-serif}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+header{flex-shrink:0;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:10px;background:#000;border:1px solid #2E3238;display:flex;align-items:center;justify-content:center}
+.brand b{display:block;font-family:Onest,sans-serif;font-size:14px;letter-spacing:.02em}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.pill{padding:7px 12px;border-radius:999px;border:1px solid var(--acc-bar);background:var(--acc-soft);font-size:13px;font-weight:800;color:var(--acc)}
+.avatar{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line2);background:var(--surf2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.avatar.on{border-color:var(--acc)}
+main{flex-grow:1;overflow-y:auto;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.screen{padding:20px 18px 28px;display:flex;flex-direction:column;gap:16px;animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+nav{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding:6px 6px calc(6px + var(--safe-b))}
+nav button{border:none;background:none;color:#7E8682;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:8px 0;cursor:pointer;transition:color .2s}
+nav button.on{color:var(--acc)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:18px}
+.h2{margin:0;font-family:Onest,sans-serif;font-size:22px}
+.sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+.label{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+.flabel{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;display:block}
+.inp{width:100%;height:50px;border-radius:14px;border:1px solid var(--line2);background:var(--surf);color:var(--text);padding:0 16px;font-size:15px;outline:none}
+.inp:focus{border-color:var(--acc-line)}
+.btn{height:54px;border:none;border-radius:16px;background:var(--acc);color:var(--on-acc);font-size:16px;font-weight:800;cursor:pointer;width:100%;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.5}
+.btn-o{height:50px;border:1.5px solid var(--acc-line);border-radius:14px;background:transparent;color:var(--acc);font-weight:800;font-size:15px;cursor:pointer;padding:0 22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:14px 12px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.stat b{display:block;font-family:Onest,sans-serif;font-size:18px}
+.stat span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.balance{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:var(--acc);color:var(--on-acc)}
+.balance .cap{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.balance .sum{font-family:Onest,sans-serif;font-size:38px;font-weight:800;margin-top:6px}
+.balance .row{display:flex;gap:10px;margin-top:18px}
+.balance .row button{flex:1;height:46px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer}
+.shine{position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
+.bar-track{height:8px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--acc);transform-origin:left;animation:growx 1s cubic-bezier(.2,.8,.2,1) both}
+.chip{padding:4px 10px;border-radius:999px;background:var(--acc-soft);border:1px solid var(--acc-line);color:var(--acc);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.row-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--surf);border:1px solid var(--line);width:100%;text-align:left;cursor:pointer}
+.pf{width:40px;height:40px;flex-shrink:0;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--acc)}
+.chart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:16px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .b{width:100%;border-radius:8px;background:var(--acc-bar);transform-origin:bottom;animation:growy .7s cubic-bezier(.2,.8,.2,1) both;min-height:4px}
+.chart .b.top{background:var(--acc)}
+.chart small{font-size:11px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--acc);margin:14px 0 10px}
+.seg{display:grid;gap:8px}
+.opt{height:50px;border-radius:14px;border:1.5px solid var(--line2);background:var(--surf);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.opt.on{border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.tabs button{height:44px;border:none;border-radius:12px;background:transparent;color:var(--muted);font-weight:800;font-size:13px;cursor:pointer;transition:all .2s}
+.tabs button.on{background:var(--acc);color:var(--on-acc)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border-radius:18px;border:1.5px dashed var(--acc-line);background:#121509;cursor:pointer;text-align:center;padding:12px}
+.drop img{max-height:140px;border-radius:10px}
+.done-ico{width:96px;height:96px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,.8,.2,1) both}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-top:50px}
+.audio{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.audio.on{border-color:var(--acc-line)}
+.play{width:46px;height:46px;flex-shrink:0;border-radius:50%;border:none;background:var(--acc);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.wave{display:flex;align-items:center;gap:3px;height:26px;margin-top:6px}
+.wave i{width:3px;border-radius:2px;background:#3A3F44;transform:scaleY(.35)}
+.audio.on .wave i{background:var(--acc);animation:wave .9s ease-in-out infinite}
+.banner-prev{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surf2)}
+.banner-prev img{width:100%;display:block}
+.guide{display:flex;gap:14px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.phone{flex-shrink:0;position:relative;width:64px;height:114px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);overflow:hidden}
+.phone .ln{position:absolute;left:8px;height:4px;border-radius:2px;background:var(--line2)}
+.phone .bn{position:absolute;left:6px;right:6px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center}
+.tag{font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px}
+.tl{position:relative;height:8px;border-radius:99px;background:var(--surf2)}
+.tl i{position:absolute;top:0;height:100%;border-radius:99px}
+.step{display:flex;gap:14px}
+.step .l{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:2px solid}
+.dot.cur{animation:pulse 2.2s ease-out infinite}
+.vline{width:2px;flex-grow:1;min-height:22px;margin:4px 0}
+.faq{border-bottom:1px solid var(--line)}
+.faq:last-child{border-bottom:none}
+.faq button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border:none;background:none;font-weight:700;font-size:15px;text-align:left;cursor:pointer}
+.faq svg{flex-shrink:0;transition:transform .25s}
+.faq.open svg{transform:rotate(180deg);stroke:var(--acc)}
+.faq .a{padding:0 18px 16px;font-size:14px;color:var(--muted);line-height:1.55;display:none}
+.faq.open .a{display:block;animation:up .3s both}
+.menu-list{border-radius:20px;background:var(--surf);border:1px solid var(--line);overflow:hidden}
+.menu-list button{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border:none;border-bottom:1px solid var(--line);background:none;font-weight:700;font-size:15px;cursor:pointer}
+.menu-list button:last-child{border-bottom:none}
+.back{align-self:flex-start;display:flex;align-items:center;gap:6px;border:none;background:none;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;padding:4px 0}
+.hero{position:relative;height:330px;border-radius:24px;overflow:hidden;background:#000;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;padding:22px}
+.hero img{position:absolute;left:0;top:-40px;width:100%;height:400px;object-fit:cover}
+.hero .fade{position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85) 55%,#000)}
+.hero .txt{position:relative}
+.hero h1{margin:8px 0 0;font-family:Onest,sans-serif;font-size:27px;line-height:1.15}
+.num{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:1px solid var(--acc-line);color:var(--acc);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-b));transform:translateX(-50%);background:#22262B;border:1px solid var(--line2);color:var(--text);padding:12px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:10;max-width:90%;animation:up .3s both}
+.toast.bad{border-color:#5A2626}
+.skeleton{height:120px;border-radius:20px;background:linear-gradient(90deg,var(--surf),var(--surf2),var(--surf));background-size:200% 100%;animation:sk 1.2s linear infinite}
+.empty{padding:22px;border-radius:18px;border:1px dashed var(--line2);text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes shine{0%{transform:translateX(-120%) skewX(-20deg)}60%,100%{transform:translateX(320%) skewX(-20deg)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,255,61,.45)}50%{box-shadow:0 0 0 10px rgba(198,255,61,0)}}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.res{padding:16px;border-radius:18px;display:flex;flex-direction:column;gap:10px;animation:up .3s both}
+.res.ok{background:var(--acc-soft);border:1px solid var(--acc-line)}
+.res.bad{background:#2A1414;border:1px solid #5A2626}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.st{font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px}
+.sbtn{height:38px;padding:0 12px;border-radius:12px;border:1px solid var(--line2);background:transparent;font-weight:700;font-size:13px;cursor:pointer;color:var(--text)}
+.sbtn.ok{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.sbtn.bad{border-color:#5A2626;color:var(--bad)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><div class="brand"><div class="logo" id="logoMark"></div><div><b>FOCUS PAY</b><small>Оператор</small></div></div></header>
+  <main id="main"><div class="screen"><div class="skeleton"></div></div></main>
+</div>
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0A0B0D'); tg.setBackgroundColor('#0A0B0D'); } catch (e) {} }
+const INIT = tg ? tg.initData : '';
+const okH = () => { try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} };
+const badH = () => { try { tg.HapticFeedback.notificationOccurred('error'); } catch (e) {} };
+document.getElementById('logoMark').innerHTML = '<svg width="19" height="19" viewBox="0 0 184 238" fill="#fff"><rect x="62" y="0" width="122" height="64" rx="12"/><rect x="0" y="54" width="76" height="72" rx="12"/><rect x="30" y="124" width="82" height="64" rx="12"/><rect x="0" y="176" width="62" height="62" rx="12"/></svg>';
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n) => Math.round(n || 0).toLocaleString('ru-RU');
+const when = (t) => t ? new Date(t * 1000).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+async function api(path, json) {
+  const r = await fetch(path, { method: json !== undefined ? 'POST' : 'GET', headers: Object.assign({ 'X-Init-Data': INIT }, json !== undefined ? { 'Content-Type': 'application/json' } : {}), body: json !== undefined ? JSON.stringify(json) : undefined });
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(d.error || 'Ошибка ' + r.status);
+  return d;
+}
+function toast(m, bad) { const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+const ask = (text) => new Promise((res) => { if (tg && tg.showConfirm) tg.showConfirm(text, res); else res(confirm(text)); });
+
+const S = { me: null, mode: 'first', res: null, form: {}, uses: null, busy: false };
+const ST = { pending: ['ждёт обмена', 'var(--warn)', '#2A2210'], done: ['проведён', 'var(--ok)', 'var(--acc-soft)'], cancelled: ['отменён', 'var(--muted)', 'var(--surf2)'], expired: ['истёк', 'var(--muted)', 'var(--surf2)'] };
+
+function readForm() { ['code', 'client', 'amount', 'payer', 'order'].forEach((k) => { const el = document.getElementById('f_' + k); if (el) S.form[k] = el.value.trim(); }); const w = document.getElementById('f_was'); if (w) S.form.was = w.checked; }
+
+function render() {
+  const m = S.me, f = S.form, first = S.mode === 'first';
+  const inp = (k, label, ph, type) => `<div><label class="flabel" for="f_${k}">${label}</label><input class="inp" id="f_${k}" ${type || 'type="text"'} placeholder="${ph}" value="${esc(f[k] || '')}"></div>`;
+  let res = '';
+  if (S.res) {
+    const r = S.res;
+    const inst = first && r.discount > 0;
+    if (r.valid && r.applied) res = `<div class="res ok"><b style="font-size:17px">✅ ${inst ? 'Скидка −' + fmt(r.discount) + ' ₽ закреплена' : first ? 'Код засчитан' : 'Кэшбэк применён: −' + fmt(r.discount) + ' ₽'}</b><div style="font-size:14px;line-height:1.5">${inst ? 'Сделай клиенту скидку на этот обмен.' : first ? `Скидки на этот обмен нет — после обмена у клиента будет кэшбэк ${fmt(m.cashback)} ₽ на следующий.` : 'Сделай клиенту скидку на этот обмен.'} Когда обмен пройдёт — «Проведён» ниже.</div></div>`;
+    else if (r.valid) res = `<div class="res ok"><b style="font-size:17px">${inst ? '✅ Можно: −' + fmt(r.discount) + ' ₽' : first ? '✅ Код подходит' : '✅ Кэшбэк есть: −' + fmt(r.discount) + ' ₽'}</b><div style="font-size:14px;line-height:1.5">${first ? `Автор: ${esc(r.author)}. Осталось активаций: ${r.uses_left}.${inst ? '' : ' Скидки сейчас нет — клиент получит кэшбэк на второй обмен.'}` : 'Можно применить к этому обмену.'}</div><button class="btn" data-a="apply">${inst ? 'Применить скидку' : first ? 'Засчитать код' : 'Применить кэшбэк'}</button></div>`;
+    else res = `<div class="res bad"><b style="font-size:17px">❌ ${esc(r.reason_text)}</b><div style="font-size:13px;color:var(--muted)">Скажи клиенту причину. ${first ? 'Обмен — по обычному курсу.' : ''}</div></div>`;
+  }
+  const uses = S.uses;
+  document.getElementById('main').innerHTML = `<div class="screen">
+  ${!m.on ? '<div class="alert" style="padding:12px 14px;border-radius:14px;background:#2A2210;border:1px solid #5A4416">Промокоды сейчас выключены.</div>' : ''}
+  ${m.mode === 'cashback' ? `<div class="tabs" style="grid-template-columns:1fr 1fr"><button class="${first ? 'on' : ''}" data-mode="first">Новый клиент · код</button><button class="${first ? '' : 'on'}" data-mode="cashback">2-й обмен · кэшбэк</button></div>` : ''}
+  <div class="card" style="display:flex;flex-direction:column;gap:12px">
+    ${first ? inp('code', 'Промокод', 'например VOVA7K') : ''}
+    ${inp('client', 'Клиент', '@username или Telegram ID')}
+    ${inp('amount', 'Сумма обмена, ₽', 'от ' + fmt(m.min_amount), 'type="number" inputmode="numeric"')}
+    ${inp('payer', 'Реквизиты клиента', 'карта, телефон или кошелёк — куда отправляем')}
+    ${inp('order', 'Номер заявки (если есть)', 'необязательно')}
+    ${first ? `<label class="chk"><input type="checkbox" id="f_was" ${f.was ? 'checked' : ''}> Клиент уже менял у нас раньше</label>` : ''}
+    <button class="btn" data-a="check" ${S.busy ? 'disabled' : ''}>Проверить</button>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5">Реквизиты не сохраняются — бот хранит только отпечаток, чтобы один человек не получил бонус дважды.</div>
+  </div>
+  ${res}
+  <div class="label">Мои за 3 дня</div>
+  ${!uses ? '<div class="skeleton"></div>' : !uses.length ? '<div class="empty">Пока пусто</div>' : uses.map((u) => { const st = ST[u.status] || ST.expired; return `
+  <div class="card" style="display:flex;flex-direction:column;gap:8px;padding:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>${u.kind === 'cashback' ? '💸 Кэшбэк −' + fmt(u.discount) + ' ₽' : '🎟 ' + esc(u.code)}</b><span class="st" style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>
+    <div style="font-size:13px;color:var(--muted)">${esc(u.client)} · ${fmt(u.amount)} ₽ · ${esc(u.order_id)} · ${when(u.created)}</div>
+    ${u.status === 'pending' ? `<div style="display:flex;gap:8px"><button class="sbtn ok" style="flex:1" data-done="${u.id}">✅ Обмен проведён</button><button class="sbtn bad" data-cancel="${u.id}">↩ Отмена</button></div>` : ''}
+  </div>`; }).join('')}
+  <div class="sub" style="font-size:12px">Правила: код — только для нового клиента, обмен от ${fmt(m.min_amount)} ₽, ${m.mode === 'cashback' ? `кэшбэк ${fmt(m.cashback)} ₽ на второй обмен` : `скидка ${fmt(m.cashback)} ₽ сразу`}. У кода ограниченное число активаций. Один раз на человека и реквизиты. Если активации кончились — договаривайся с клиентом сам. Всё проверяет бот.</div>
+  </div>`;
+}
+async function loadUses() { try { S.uses = (await api('/api/op/uses')).items; } catch (e) { S.uses = []; } render(); }
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-mode],[data-a],[data-done],[data-cancel]'); if (!el) return;
+  const d = el.dataset;
+  if (d.mode) { readForm(); S.mode = d.mode; S.res = null; return render(); }
+  if (d.a === 'check' || d.a === 'apply') {
+    readForm(); const f = S.form, first = S.mode === 'first';
+    if (first && !f.code) return toast('Введи промокод', true);
+    if (!f.client || !f.amount || !f.payer) return toast('Заполни клиента, сумму и реквизиты', true);
+    S.busy = true; render();
+    try {
+      const body = { client: f.client, amount: f.amount, payer: f.payer, order_id: f.order || undefined };
+      let r;
+      if (first) r = await api(d.a === 'apply' ? '/api/op/apply' : '/api/op/check', Object.assign(body, { code: f.code, was_client: !!f.was }));
+      else r = await api('/api/op/cashback', Object.assign(body, { apply: d.a === 'apply' }));
+      S.res = r; (r.valid ? okH : badH)();
+      if (r.applied) { S.form = {}; loadUses(); }
+    } catch (err) { toast(err.message, true); }
+    S.busy = false; return render();
+  }
+  if (d.done || d.cancel) {
+    const id = d.done || d.cancel;
+    if (!(await ask(d.done ? 'Обмен прошёл?' : 'Обмен не состоялся? Клиент сможет применить бонус снова.'))) return;
+    try { await api(`/api/op/uses/${id}/${d.done ? 'complete' : 'cancel'}`, {}); okH(); toast('Готово'); } catch (err) { toast(err.message, true); }
+    return loadUses();
+  }
+});
+(async () => {
+  try { S.me = await api('/api/op/me'); render(); loadUses(); }
+  catch (e) { document.getElementById('main').innerHTML = `<div class="screen"><div class="empty">${esc(e.message)}</div></div>`; }
+})();
+</script>
+</body>
+</html>

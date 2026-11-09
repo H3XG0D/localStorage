@@ -1,0 +1,24 @@
+---
+description: Remind about parked casino stubs (clans) when the user asks what to do next.
+alwaysApply: true
+---
+
+# Parked casino surfaces
+
+Hidden from lobby, rail, search, and promo. **Do not delete.** Unhide by clearing `hidden` in `gameCatalog.ts` and `CASINO_CLANS_PAGE_HIDDEN`.
+
+When the user asks «что можно сделать», «что дальше», «что делать» or similar: remind that these stubs already exist, then focus on visible pages.
+
+Parked (code stays):
+
+- Клан vs клан — `/casino/play/clan_war`, `CasinoClanWars.tsx`
+- Команды / кланы — `/casino/clans`, `CasinoClans.tsx`
+- Техасский холдем — `/casino/play/holdem`, `/casino/poker`, `CasinoPoker.tsx`
+- Нарды — `/casino/play/nardy`, `CasinoNardy.tsx`
+- Русские шашки — `/casino/play/russian_draughts`, `CasinoDraughts.tsx`
+
+Visible now: лобби, кубики / баккара / блэкджек (только стол игроков 2–6, бот на пустое место; дом 1×1 спрятан), рулетка 0–36 (`/casino/play/roulette`, общий стол, не 1×1 против казино), джекпот, комнаты (равная ставка, 2–6 мест, колесо как джекпот), FocusLucky (`/casino/play/raffle`, билеты за обмены, живой розыгрыш), профиль, настройки, честность, чат.
+
+`raffle` — это FocusLucky, не рулетка 0–36.
+
+Do not start building the parked games unless the user explicitly unhides them.

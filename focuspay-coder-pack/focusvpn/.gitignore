@@ -1,0 +1,55 @@
+# Secrets & local env (never commit)
+secrets/
+*.pem
+*.key
+*.p12
+.env
+.env.*
+!.env.example
+
+# Go
+bin/
+dist/
+vendor/
+*.exe
+*.test
+coverage.out
+coverage.html
+
+# Node agent / VPN runtime local state
+*.conf
+!docs/**/*.md
+
+# IDE / OS / agent tooling
+.idea/
+.vscode/
+.claude/
+.continue/
+.obsidian/
+docs/.obsidian/
+.cursor/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Agent local workbench (specs/tickets); keep README tracked
+.scratch/*
+!.scratch/README.md
+
+# Agent / native build caches (amneziawg-android checkout, etc.)
+.cache/
+tmp/
+*.log
+
+# Client build artifacts (Phase 3+)
+clients/**/build/
+clients/**/.gradle/
+clients/**/DerivedData/
+clients/android/local.properties
+clients/android/.libxray/
+clients/android/app/src/main/jniLibs/**/*.so
+clients/apple/.build/
+clients/apple/.native.env
+clients/apple/*.xcodeproj/
+clients/apple/*.xcworkspace/
+*.iml

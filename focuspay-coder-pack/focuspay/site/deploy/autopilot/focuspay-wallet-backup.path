@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup FocusPay wallets when a new deposit address appears
+
+[Path]
+PathChanged=/var/lib/focuspay-signer/wallet-backup.requested
+Unit=focuspay-wallet-backup.service
+
+[Install]
+WantedBy=multi-user.target

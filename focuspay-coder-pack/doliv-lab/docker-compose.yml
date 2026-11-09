@@ -1,0 +1,71 @@
+# Isolated lab stack — does NOT share volumes/ports with prod doliv
+name: doliv_lab
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: doliv
+      POSTGRES_PASSWORD: doliv
+      POSTGRES_DB: doliv_lab
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_lab_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doliv -d doliv_lab"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://doliv:doliv@postgres:5432/doliv_lab
+      SECRET_KEY: lab-secret-key-not-for-prod
+      DEV_MODE: "true"
+      UPLOAD_DIR: /app/uploads
+      CORS_ORIGINS: http://localhost:5175,http://127.0.0.1:5175
+      RAPIRA_RATE_FALLBACK: "90"
+      RAPIRA_RATE_URL: "https://api.rapira.net/open/market/rates"
+    volumes:
+      - ./backend:/app
+      - upload_lab_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Only watch Python package — uploads/tests/__pycache__ used to restart uvicorn
+    # on every receipt and look like the API "fell".
+    command: >
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      --reload --reload-dir /app/app
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "5175:5175"
+    environment:
+      VITE_API_URL: /api
+      VITE_PROXY_TARGET: http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: npm run dev -- --host 0.0.0.0 --port 5175
+
+volumes:
+  postgres_lab_data:
+  upload_lab_data:

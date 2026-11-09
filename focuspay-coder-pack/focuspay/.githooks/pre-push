@@ -1,0 +1,4 @@
+#!/bin/sh
+# Enable: ./scripts/install-githooks.sh
+root="$(git rev-parse --show-toplevel)"
+exec "$root/scripts/check.sh"

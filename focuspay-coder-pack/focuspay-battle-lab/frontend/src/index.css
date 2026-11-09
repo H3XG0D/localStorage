@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-white antialiased;
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-red {
+    @apply rounded-xl py-3 font-semibold text-sm bg-red-950 border border-red-800 text-red-200
+      hover:bg-red-900 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-blue {
+    @apply rounded-xl py-3 font-semibold text-sm bg-blue-950 border border-blue-800 text-blue-200
+      hover:bg-blue-900 active:scale-95 transition disabled:opacity-40 disabled:pointer-events-none;
+  }
+}
+
+.resolve-flash {
+  animation: resolve-flash 0.8s ease-in-out 3;
+}
+
+.resolve-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 1rem;
+  animation: fade-in 0.3s ease;
+}
+
+.resolve-pulse {
+  font-size: 2.5rem;
+  animation: pulse-scale 0.5s ease-in-out 4;
+}
+
+@keyframes resolve-flash {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 24px 4px rgba(250, 204, 21, 0.35);
+  }
+}
+
+@keyframes pulse-scale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

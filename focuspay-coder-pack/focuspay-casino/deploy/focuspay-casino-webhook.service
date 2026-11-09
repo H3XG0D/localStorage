@@ -1,0 +1,26 @@
+[Unit]
+Description=FocusPay Casino Webhook API
+After=network.target
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/focuspay-casino
+EnvironmentFile=/etc/focuspay/casino-bot.env
+Environment="PATH=/opt/focuspay-casino/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/focuspay-casino/venv/bin/uvicorn webhook:app --host 127.0.0.1 --port 8001
+Restart=always
+RestartSec=10
+
+# Логирование
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=focuspay-casino-webhook
+
+# Безопасность
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

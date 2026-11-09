@@ -1,0 +1,17 @@
+[Unit]
+Description=FocusPay Exchange API (FastAPI)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/exchange-backend
+EnvironmentFile=/opt/exchange-backend/.env
+Environment=PATH=/opt/exchange-backend/venv/bin
+ExecStart=/opt/exchange-backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --no-server-header --limit-concurrency 100
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

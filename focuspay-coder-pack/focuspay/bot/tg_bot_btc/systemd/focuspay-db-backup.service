@@ -1,0 +1,24 @@
+[Unit]
+Description=FocusPay PostgreSQL backup and offsite synchronization
+Wants=network-online.target
+After=network-online.target postgresql.service
+ConditionPathExists=/opt/tg_bot_btc/.env
+ConditionPathExists=/opt/tg_bot_btc/scripts/backup_full.sh
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/tg_bot_btc
+ExecStart=/usr/bin/env /opt/tg_bot_btc/scripts/backup_full.sh
+UMask=0077
+TimeoutStartSec=1800
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/backups/focuspay
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+StandardOutput=journal
+StandardError=journal

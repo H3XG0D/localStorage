@@ -1,0 +1,11 @@
+[Unit]
+Description=FocusPay Database Backup Timer (Daily)
+Requires=focuspay-db-backup.service
+
+[Timer]
+# Каждый день в 02:00 по московскому времени
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

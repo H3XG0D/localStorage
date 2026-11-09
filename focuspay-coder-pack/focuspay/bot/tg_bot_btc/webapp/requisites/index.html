@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Реквизиты · Focus Pay</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 0; padding: 20px;
+      /* Явные цвета — tg-theme иногда даёт текст = фон */
+      background: #0f1419;
+      color: #f2f4f7;
+    }
+    .card {
+      max-width: 460px; margin: 0 auto;
+      background: #1a2332;
+      border: 1px solid #2a3648;
+      border-radius: 16px; padding: 22px;
+    }
+    h1 { font-size: 20px; margin: 0 0 8px; color: #fff; }
+    .hint { color: #9aa8bc; font-size: 14px; margin: 0 0 16px; }
+    .row { margin: 14px 0; font-size: 15px; }
+    .row b { display: block; font-size: 12px; color: #8b9bb0; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
+    .val {
+      font-size: 20px; font-weight: 700; word-break: break-all;
+      color: #ffffff;
+      background: #0d121a;
+      border: 1px solid #2a3648;
+      border-radius: 10px;
+      padding: 12px 14px;
+      user-select: all;
+      -webkit-user-select: all;
+    }
+    .err { color: #ff6b6b; margin-top: 12px; font-size: 15px; line-height: 1.4; white-space: pre-line; }
+    .ok { margin-top: 12px; color: #9aa8bc; font-size: 13px; }
+    button, .copy {
+      width: 100%; margin-top: 10px; padding: 14px; font-size: 16px;
+      font-weight: 600; border: 0; border-radius: 12px; cursor: pointer;
+      background: #2aabee; color: #fff;
+    }
+    .copy {
+      margin-top: 8px; padding: 10px; font-size: 14px;
+      background: #243044; color: #d7e0ec;
+    }
+    .hp { position: absolute; left: -9999px; opacity: 0; height: 0; width: 0; }
+  </style>
+</head>
+<body>
+  <div class="card" id="app">
+    <h1>Реквизиты для оплаты</h1>
+    <p class="hint" id="hint">Загрузка…</p>
+    <div id="content"></div>
+    <input class="hp" id="nickname" name="nickname" tabindex="-1" autocomplete="off" />
+  </div>
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) {
+      try { tg.ready(); tg.expand(); tg.setHeaderColor("#0f1419"); tg.setBackgroundColor("#0f1419"); } catch (e) {}
+    }
+
+    function qs(name) {
+      const fromSearch = new URLSearchParams(location.search).get(name);
+      if (fromSearch) return fromSearch;
+      // Telegram иногда кладёт start params в hash
+      const h = (location.hash || "").replace(/^#/, "");
+      if (!h) return "";
+      try {
+        return new URLSearchParams(h).get(name)
+          || new URLSearchParams(decodeURIComponent(h)).get(name)
+          || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    async function fingerprint() {
+      try {
+        const c = document.createElement("canvas");
+        const ctx = c.getContext("2d");
+        ctx.textBaseline = "top";
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "#f60"; ctx.fillRect(0, 0, 100, 20);
+        ctx.fillStyle = "#069"; ctx.fillText("focus-pay-fp-v2", 2, 2);
+        const canvas = c.toDataURL();
+        let webgl = "";
+        try {
+          const glc = document.createElement("canvas");
+          const gl = glc.getContext("webgl") || glc.getContext("experimental-webgl");
+          if (gl) {
+            const ext = gl.getExtension("WEBGL_debug_renderer_info");
+            if (ext) {
+              webgl = String(gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || "") + "|" +
+                String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || "");
+            }
+          }
+        } catch (e) {}
+        const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { return ""; } })();
+        const langs = (navigator.languages && navigator.languages.length)
+          ? navigator.languages.join(",")
+          : (navigator.language || "");
+        const plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+        const raw = [
+          "v2",
+          canvas,
+          navigator.userAgent || "",
+          plat,
+          `${screen.width}x${screen.height}@${window.devicePixelRatio || 1}`,
+          String(screen.colorDepth || ""),
+          String(navigator.hardwareConcurrency || ""),
+          String(navigator.deviceMemory || ""),
+          String(navigator.maxTouchPoints || ""),
+          tz,
+          langs,
+          webgl,
+        ].join("|");
+        if (crypto && crypto.subtle) {
+          const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+          return "v2:" + [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+        }
+        let h = 0;
+        for (let i = 0; i < raw.length; i++) h = ((h << 5) - h + raw.charCodeAt(i)) | 0;
+        return "v2:" + ("00000000" + (h >>> 0).toString(16)).slice(-8) + String(raw.length);
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function collectSignals() {
+      return {
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        languages: navigator.languages ? [...navigator.languages] : [navigator.language],
+        platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform,
+        user_agent: navigator.userAgent,
+        screen: `${screen.width}x${screen.height}@${window.devicePixelRatio || 1}`,
+      };
+    }
+
+    function initData() {
+      if (tg && tg.initData) return tg.initData;
+      const h = location.hash || "";
+      const m = h.match(/tgWebAppData=([^&]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      })[c]);
+    }
+
+    function copyText(text, btn) {
+      const done = () => { if (btn) { const t = btn.textContent; btn.textContent = "Скопировано"; setTimeout(() => btn.textContent = t, 1200); } };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => {
+          const ta = document.createElement("textarea");
+          ta.value = text; document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); } catch (e) {}
+          ta.remove(); done();
+        });
+      }
+    }
+
+    function renderBill(data) {
+      const b = data.bill || {};
+      const bank = (b.bank || "").toString().trim() || "—";
+      const rec = (b.reciver || "").toString().trim() || "—";
+      const fio = (b.fio || "").toString().trim() || "—";
+      const fiat = data.fiat_amount != null ? Number(data.fiat_amount).toLocaleString("ru-RU") : "—";
+      document.getElementById("hint").textContent = "Переведите точную сумму одним платежом.";
+      document.getElementById("content").innerHTML = `
+        <div class="row"><b>Сумма</b><div class="val" id="vSum">${fiat} ₽</div>
+          <button type="button" class="copy" data-copy="${esc(String(data.fiat_amount || ""))}">Копировать сумму</button></div>
+        <div class="row"><b>Банк</b><div class="val">${esc(bank)}</div></div>
+        <div class="row"><b>Получатель / счёт</b><div class="val" id="vRec">${esc(rec)}</div>
+          <button type="button" class="copy" data-copy="${esc(rec)}">Копировать получателя</button></div>
+        <div class="row"><b>ФИО</b><div class="val">${esc(fio)}</div></div>
+        <p class="err">Не оплачивайте с МТС Банка и Уралсиба — такие переводы не принимаем.</p>
+        <p class="ok">После оплаты вернитесь в бот и нажмите «Я оплатил».</p>
+        <button type="button" id="closeBtn">Готово</button>
+      `;
+      document.querySelectorAll(".copy").forEach(btn => {
+        btn.onclick = () => copyText(btn.getAttribute("data-copy") || "", btn);
+      });
+      document.getElementById("closeBtn").onclick = () => { if (tg) tg.close(); };
+      if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+    }
+
+    async function main() {
+      const orderId = qs("order_id");
+      const sig = qs("sig");
+      const idata = initData();
+      const hint = document.getElementById("hint");
+      if (!idata) {
+        hint.textContent = "Откройте реквизиты кнопкой внутри Telegram — не через браузер.";
+        return;
+      }
+      if (!orderId || !sig) {
+        hint.textContent = "Неверная ссылка. Вернитесь в бот и нажмите «Открыть реквизиты».";
+        return;
+      }
+      const fp = await fingerprint();
+      let res;
+      try {
+        const r = await fetch("/webapp/api/requisites/open", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            order_id: orderId,
+            sig,
+            init_data: idata,
+            fingerprint: fp,
+            signals: collectSignals(),
+            honeypot: document.getElementById("nickname").value || "",
+          }),
+        });
+        res = await r.json();
+      } catch (e) {
+        hint.textContent = "Сеть недоступна. Попробуйте ещё раз.";
+        return;
+      }
+      if (!res.ok || res.blocked || !res.bill) {
+        hint.textContent = res.requisites_closed ? "До окончания PayFast обратитесь к оператору." : "";
+        document.getElementById("content").innerHTML =
+          `<p class="err">${esc(res.message || "Нет реквизитов. Напишите @focus_operator")}</p>`;
+        return;
+      }
+      const b = res.bill || {};
+      if (!b.bank && !b.reciver && !b.fio) {
+        hint.textContent = "";
+        document.getElementById("content").innerHTML =
+          `<p class="err">Реквизиты пустые. Напишите @focus_operator</p>`;
+        return;
+      }
+      renderBill(res);
+    }
+    main();
+  </script>
+</body>
+</html>

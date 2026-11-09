@@ -1,0 +1,105 @@
+# Build & cache Android libwg-go.so ABIs (amneziawg-android v2.0.2 → go v0.2.19).
+# P4-M9: actions/cache on packed tarball + artifact for download without NDK locally.
+name: android-native
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/build-android-native.sh"
+      - "scripts/android-native-abi.sh"
+      - "scripts/native-libs-check.sh"
+      - ".github/workflows/android-native.yml"
+      - "Makefile"
+  pull_request:
+    paths:
+      - "scripts/build-android-native.sh"
+      - "scripts/android-native-abi.sh"
+      - "scripts/native-libs-check.sh"
+      - ".github/workflows/android-native.yml"
+      - "Makefile"
+
+concurrency:
+  group: android-native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  libwg-go:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      FOCUSVPN_AWG_ANDROID_TAG: v2.0.2
+      FOCUSVPN_ANDROID_PACKAGE: com.focusvpn.app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK 26.1 + CMake
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "ndk;26.1.10909125" "cmake;3.22.1" "platform-tools"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >>"$GITHUB_ENV"
+
+      - name: ABI cache key
+        id: key
+        run: echo "key=$(bash scripts/android-native-abi.sh key)" >>"$GITHUB_OUTPUT"
+
+      - name: Cache packed ABIs
+        id: abi-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/native/abi
+          key: ${{ steps.key.outputs.key }}-${{ hashFiles('scripts/build-android-native.sh', 'scripts/android-native-abi.sh') }}
+          restore-keys: |
+            ${{ steps.key.outputs.key }}-
+
+      - name: Restore jniLibs from ABI cache
+        id: restore
+        if: steps.abi-cache.outputs.cache-hit == 'true'
+        run: |
+          set -euo pipefail
+          if make android-native-restore; then
+            echo "hit=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "hit=false" >>"$GITHUB_OUTPUT"
+            echo "cache tarball missing/invalid — will rebuild"
+            exit 0
+          fi
+
+      - name: Build libwg-go.so
+        if: steps.abi-cache.outputs.cache-hit != 'true' || steps.restore.outputs.hit != 'true'
+        run: make android-native
+
+      - name: Pack ABI tarball
+        if: steps.abi-cache.outputs.cache-hit != 'true' || steps.restore.outputs.hit != 'true'
+        run: make android-native-pack
+
+      - name: Verify ABIs (no GPL)
+        run: make android-native-verify
+
+      - name: Upload ABI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.key.outputs.key }}
+          path: .cache/native/abi/*.tgz
+          if-no-files-found: error
+          retention-days: 30
+
+  # Fast pin/docs gate (no NDK) — same as make native-libs-check.
+  pins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: native-libs-check
+        run: make native-libs-check

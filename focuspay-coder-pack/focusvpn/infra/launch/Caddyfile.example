@@ -1,0 +1,11 @@
+# Caddy on CP VPS — TLS for public client API.
+# Agent mTLS (:8443) is served by the Go process directly (do not terminate here).
+
+{$FOCUSVPN_API_HOST:api.example.com} {
+	encode gzip
+	reverse_proxy 127.0.0.1:8080
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+	}
+}

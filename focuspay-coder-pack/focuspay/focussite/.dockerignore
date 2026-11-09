@@ -1,0 +1,12 @@
+**/.env
+**/.env.*
+**/node_modules
+**/dist
+**/__pycache__
+**/.pytest_cache
+focuspay-main-site/tmp
+focuspay-main-site
+focuspay-main-site/opt/tg_bot_btc/operator_avatars
+focuspay-main-site/opt/tg_bot_btc/tests
+focuspay-main-site/opt/exchange-backend/tests
+.git

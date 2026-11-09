@@ -1,0 +1,25 @@
+[Unit]
+Description=FocusPay isolated staging runtime
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=focuspay-staging
+Group=focuspay-staging
+WorkingDirectory=/opt/focuspay
+Environment=STAGING_RUNTIME_ENV_FILE=/etc/focuspay/staging-runtime.env
+ExecStart=/opt/focuspay/focussite/scripts/staging-runtime-update.sh --apply
+ExecStop=/usr/bin/docker compose --env-file /etc/focuspay/staging-runtime.env -f /opt/focuspay/focussite/docker-compose.staging-runtime.yml down
+RemainAfterExit=yes
+TimeoutStartSec=15min
+TimeoutStopSec=2min
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/docker /run/docker.sock
+
+[Install]
+WantedBy=multi-user.target

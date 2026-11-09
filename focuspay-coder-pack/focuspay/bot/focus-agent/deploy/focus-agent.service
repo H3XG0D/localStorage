@@ -1,0 +1,16 @@
+[Unit]
+Description=Focus Agent user chat bot (polling)
+After=network.target
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/focus-agent
+EnvironmentFile=/opt/focus-agent/.env
+ExecStart=/opt/focus-agent/venv/bin/python -m focus_agent
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

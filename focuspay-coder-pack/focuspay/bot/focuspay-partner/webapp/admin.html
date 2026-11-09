@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Focus Pay — Админка</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0B0D; --surf:#141619; --surf2:#1C1F23; --line:#24282D; --line2:#2A2F35;
+  --text:#F2F4F3; --muted:#9BA3A0; --dim:#6B726F;
+  --acc:#C6FF3D; --on-acc:#0A0B0D; --acc-soft:#1A2110; --acc-line:#3D4D17; --acc-bar:#2E3A14;
+  --warn:#FFB547; --ok:#5EE3A0; --bad:#FF6B6B;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Manrope,'Segoe UI',system-ui,sans-serif}
+button{font-family:inherit;color:inherit}
+input{font-family:inherit}
+input::placeholder{color:#6B726F}
+.disp{font-family:Onest,Manrope,sans-serif}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+header{flex-shrink:0;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:10px;background:#000;border:1px solid #2E3238;display:flex;align-items:center;justify-content:center}
+.brand b{display:block;font-family:Onest,sans-serif;font-size:14px;letter-spacing:.02em}
+.brand small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.pill{padding:7px 12px;border-radius:999px;border:1px solid var(--acc-bar);background:var(--acc-soft);font-size:13px;font-weight:800;color:var(--acc)}
+.avatar{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line2);background:var(--surf2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.avatar.on{border-color:var(--acc)}
+main{flex-grow:1;overflow-y:auto;scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.screen{padding:20px 18px 28px;display:flex;flex-direction:column;gap:16px;animation:up .45s cubic-bezier(.2,.8,.2,1) both}
+nav{flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);padding:6px 6px calc(6px + var(--safe-b))}
+nav button{border:none;background:none;color:#7E8682;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:8px 0;cursor:pointer;transition:color .2s}
+nav button.on{color:var(--acc)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:18px}
+.h2{margin:0;font-family:Onest,sans-serif;font-size:22px}
+.sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+.label{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--acc)}
+.flabel{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;display:block}
+.inp{width:100%;height:50px;border-radius:14px;border:1px solid var(--line2);background:var(--surf);color:var(--text);padding:0 16px;font-size:15px;outline:none}
+.inp:focus{border-color:var(--acc-line)}
+.btn{height:54px;border:none;border-radius:16px;background:var(--acc);color:var(--on-acc);font-size:16px;font-weight:800;cursor:pointer;width:100%;transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.5}
+.btn-o{height:50px;border:1.5px solid var(--acc-line);border-radius:14px;background:transparent;color:var(--acc);font-weight:800;font-size:15px;cursor:pointer;padding:0 22px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:14px 12px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.stat b{display:block;font-family:Onest,sans-serif;font-size:18px}
+.stat span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.balance{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:var(--acc);color:var(--on-acc)}
+.balance .cap{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.balance .sum{font-family:Onest,sans-serif;font-size:38px;font-weight:800;margin-top:6px}
+.balance .row{display:flex;gap:10px;margin-top:18px}
+.balance .row button{flex:1;height:46px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer}
+.shine{position:absolute;top:0;left:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 3.6s ease-in-out infinite;pointer-events:none}
+.bar-track{height:8px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:var(--acc);transform-origin:left;animation:growx 1s cubic-bezier(.2,.8,.2,1) both}
+.chip{padding:4px 10px;border-radius:999px;background:var(--acc-soft);border:1px solid var(--acc-line);color:var(--acc);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.row-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--surf);border:1px solid var(--line);width:100%;text-align:left;cursor:pointer}
+.pf{width:40px;height:40px;flex-shrink:0;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--acc)}
+.chart{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:16px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.chart .b{width:100%;border-radius:8px;background:var(--acc-bar);transform-origin:bottom;animation:growy .7s cubic-bezier(.2,.8,.2,1) both;min-height:4px}
+.chart .b.top{background:var(--acc)}
+.chart small{font-size:11px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--acc);margin:14px 0 10px}
+.seg{display:grid;gap:8px}
+.opt{height:50px;border-radius:14px;border:1.5px solid var(--line2);background:var(--surf);font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.opt.on{border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.tabs button{height:44px;border:none;border-radius:12px;background:transparent;color:var(--muted);font-weight:800;font-size:13px;cursor:pointer;transition:all .2s}
+.tabs button.on{background:var(--acc);color:var(--on-acc)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border-radius:18px;border:1.5px dashed var(--acc-line);background:#121509;cursor:pointer;text-align:center;padding:12px}
+.drop img{max-height:140px;border-radius:10px}
+.done-ico{width:96px;height:96px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,.8,.2,1) both}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-top:50px}
+.audio{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.audio.on{border-color:var(--acc-line)}
+.play{width:46px;height:46px;flex-shrink:0;border-radius:50%;border:none;background:var(--acc);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.wave{display:flex;align-items:center;gap:3px;height:26px;margin-top:6px}
+.wave i{width:3px;border-radius:2px;background:#3A3F44;transform:scaleY(.35)}
+.audio.on .wave i{background:var(--acc);animation:wave .9s ease-in-out infinite}
+.banner-prev{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--surf2)}
+.banner-prev img{width:100%;display:block}
+.guide{display:flex;gap:14px;padding:14px;border-radius:18px;background:var(--surf);border:1px solid var(--line)}
+.phone{flex-shrink:0;position:relative;width:64px;height:114px;border-radius:12px;background:var(--surf2);border:1px solid var(--line);overflow:hidden}
+.phone .ln{position:absolute;left:8px;height:4px;border-radius:2px;background:var(--line2)}
+.phone .bn{position:absolute;left:6px;right:6px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center}
+.tag{font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px}
+.tl{position:relative;height:8px;border-radius:99px;background:var(--surf2)}
+.tl i{position:absolute;top:0;height:100%;border-radius:99px}
+.step{display:flex;gap:14px}
+.step .l{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:2px solid}
+.dot.cur{animation:pulse 2.2s ease-out infinite}
+.vline{width:2px;flex-grow:1;min-height:22px;margin:4px 0}
+.faq{border-bottom:1px solid var(--line)}
+.faq:last-child{border-bottom:none}
+.faq button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border:none;background:none;font-weight:700;font-size:15px;text-align:left;cursor:pointer}
+.faq svg{flex-shrink:0;transition:transform .25s}
+.faq.open svg{transform:rotate(180deg);stroke:var(--acc)}
+.faq .a{padding:0 18px 16px;font-size:14px;color:var(--muted);line-height:1.55;display:none}
+.faq.open .a{display:block;animation:up .3s both}
+.menu-list{border-radius:20px;background:var(--surf);border:1px solid var(--line);overflow:hidden}
+.menu-list button{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border:none;border-bottom:1px solid var(--line);background:none;font-weight:700;font-size:15px;cursor:pointer}
+.menu-list button:last-child{border-bottom:none}
+.back{align-self:flex-start;display:flex;align-items:center;gap:6px;border:none;background:none;color:var(--muted);font-weight:700;font-size:14px;cursor:pointer;padding:4px 0}
+.hero{position:relative;height:330px;border-radius:24px;overflow:hidden;background:#000;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:flex-end;padding:22px}
+.hero img{position:absolute;left:0;top:-40px;width:100%;height:400px;object-fit:cover}
+.hero .fade{position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.85) 55%,#000)}
+.hero .txt{position:relative}
+.hero h1{margin:8px 0 0;font-family:Onest,sans-serif;font-size:27px;line-height:1.15}
+.num{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:1px solid var(--acc-line);color:var(--acc);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(96px + var(--safe-b));transform:translateX(-50%);background:#22262B;border:1px solid var(--line2);color:var(--text);padding:12px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:10;max-width:90%;animation:up .3s both}
+.toast.bad{border-color:#5A2626}
+.skeleton{height:120px;border-radius:20px;background:linear-gradient(90deg,var(--surf),var(--surf2),var(--surf));background-size:200% 100%;animation:sk 1.2s linear infinite}
+.empty{padding:22px;border-radius:18px;border:1px dashed var(--line2);text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes shine{0%{transform:translateX(-120%) skewX(-20deg)}60%,100%{transform:translateX(320%) skewX(-20deg)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,255,61,.45)}50%{box-shadow:0 0 0 10px rgba(198,255,61,0)}}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+.badge{position:absolute;top:2px;right:calc(50% - 20px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+nav button{position:relative}
+.kpi{padding:14px;border-radius:16px;background:var(--surf);border:1px solid var(--line)}
+.kpi b{display:block;font-family:Onest,sans-serif;font-size:20px}
+.kpi span{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.kpi small{display:block;font-size:11px;color:var(--dim);margin-top:2px}
+.hbar{display:flex;align-items:center;gap:10px;font-size:13px}
+.hbar .tr{flex:1;height:10px;border-radius:99px;background:var(--surf2);overflow:hidden}
+.hbar .tr i{display:block;height:100%;border-radius:99px;background:var(--acc);transform-origin:left;animation:growx .8s both}
+.alert{padding:12px 14px;border-radius:14px;background:#2A2210;border:1px solid #5A4416;font-size:14px;line-height:1.45}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-weight:700;font-size:13px;cursor:pointer}
+.chipb.on{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.vcard{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:center}
+.sbtn{height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line2);background:transparent;font-weight:700;font-size:13px;cursor:pointer;color:var(--text)}
+.sbtn.ok{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.sbtn.bad{border-color:#5A2626;color:var(--bad)}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:none}
+.kv span{color:var(--muted)}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:up .2s both}
+.sheet{width:100%;max-width:520px;max-height:88vh;overflow-y:auto;background:var(--bg);border-top:1px solid var(--line2);border-radius:24px 24px 0 0;padding:18px 18px calc(24px + var(--safe-b));display:flex;flex-direction:column;gap:14px}
+textarea.inp{height:auto;padding:12px 16px;resize:none}
+.flag{font-size:12px;color:var(--warn);background:#2A2210;border-radius:10px;padding:8px 10px;line-height:1.4}
+.shot{width:100%;border-radius:12px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><div class="logo" id="logoMark"></div><div><b>FOCUS PAY</b><small>Админка</small></div></div>
+    <div class="hdr-r"><button class="avatar" data-a="reload" aria-label="Обновить"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F4F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button></div>
+  </header>
+  <main id="main"><div class="screen"><div class="skeleton"></div><div class="skeleton"></div></div></main>
+  <nav id="nav"></nav>
+</div>
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#0A0B0D'); tg.setBackgroundColor('#0A0B0D'); } catch (e) {} }
+const INIT = tg ? tg.initData : '';
+const haptic = (t) => { try { tg.HapticFeedback.impactOccurred(t || 'light'); } catch (e) {} };
+const okH = () => { try { tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} };
+const F_MARK = (s) => `<svg width="${s}" height="${s}" viewBox="0 0 184 238" fill="#fff"><rect x="62" y="0" width="122" height="64" rx="12"/><rect x="0" y="54" width="76" height="72" rx="12"/><rect x="30" y="124" width="82" height="64" rx="12"/><rect x="0" y="176" width="62" height="62" rx="12"/></svg>`;
+document.getElementById('logoMark').innerHTML = F_MARK(19);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (n) => Math.round(n || 0).toLocaleString('ru-RU');
+const kfmt = (n) => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.0', '') + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'K' : fmt(n);
+const when = (t) => t ? new Date(t * 1000).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+const ago = (t) => { const m = Math.round((Date.now() / 1000 - t) / 60); return m < 60 ? m + ' мин назад' : m < 1440 ? Math.round(m / 60) + ' ч назад' : Math.round(m / 1440) + ' дн назад'; };
+async function api(path, json) {
+  const r = await fetch(path, { method: json !== undefined ? 'POST' : 'GET', headers: Object.assign({ 'X-Init-Data': INIT }, json !== undefined ? { 'Content-Type': 'application/json' } : {}), body: json !== undefined ? JSON.stringify(json) : undefined });
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(d.error || 'Ошибка ' + r.status);
+  return d;
+}
+function toast(m, bad) { const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+const ask = (text) => new Promise((res) => { if (tg && tg.showConfirm) tg.showConfirm(text, res); else res(confirm(text)); });
+const ICON = { home: '<path d="M4 19V10M10 19V5M16 19v-6M22 19H2"/>', vid: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/>', pay: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/>', users: '<circle cx="9" cy="8" r="4"/><path d="M2 21c1-4 4-6 7-6s6 2 7 6M17 11a3 3 0 1 0 0-6M22 21c-.5-2.5-2-4.2-4-5"/>', more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>' };
+const ico = (n) => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+const REASONS = [['low', '< порога'], ['noins', 'Нет баннеров'], ['fake', 'Накрутка'], ['dup', 'Дубль/чужой'], ['other', 'Другое']];
+
+const S = { tab: 'home', days: 30, ov: null, vStatus: 'pending', videos: null, pStatus: 'pending', payouts: null, aQ: '', aSort: 'views', authors: null, more: 'menu', ideas: null, settings: null, shots: {}, sheet: null, voices: null, promo: null, pDays: 30, team: null, vSel: { voice: 'onyx', style: 'energy', phrase: 0 }, playing: null };
+
+async function load() {
+  try {
+    if (S.tab === 'home' || !S.ov) S.ov = await api('/api/admin/overview?days=' + S.days);
+    if (S.tab === 'videos') S.videos = (await api('/api/admin/videos?status=' + S.vStatus)).items;
+    if (S.tab === 'payouts') S.payouts = (await api('/api/admin/payouts?status=' + S.pStatus)).items;
+    if (S.tab === 'authors') S.authors = (await api('/api/admin/authors?sort=' + S.aSort + '&q=' + encodeURIComponent(S.aQ))).items;
+    if (S.tab === 'more' && S.more === 'ideas') S.ideas = (await api('/api/admin/ideas')).items;
+    if (S.tab === 'more' && S.more === 'settings') S.settings = (await api('/api/admin/settings')).items;
+    if (S.tab === 'more' && S.more === 'voices') S.voices = await api('/api/admin/voices');
+    if (S.tab === 'more' && S.more === 'promo') S.promo = await api('/api/admin/promo?days=' + S.pDays);
+    if (S.tab === 'more' && S.more === 'team') S.team = await api('/api/admin/team');
+    render();
+  } catch (e) { document.getElementById('main').innerHTML = `<div class="screen"><div class="empty">${esc(e.message)}</div></div>`; }
+}
+
+// ── Обзор
+function bars(series, money) {
+  const max = Math.max(1, ...series.map((x) => x.v));
+  const step = Math.ceil(series.length / 7);
+  return `<div class="chart" style="gap:3px">${series.map((x, i) => `<div class="col"><div class="b ${x.v === max && x.v > 0 ? 'top' : ''}" style="height:${Math.max(3, x.v / max * 100)}%;animation-delay:${i * .02}s" title="${x.d}: ${fmt(x.v)}"></div><small style="font-size:9px">${i % step === 0 ? x.d.slice(0, 5) : ''}</small></div>`).join('')}</div>`;
+}
+function hbars(list, key, label) {
+  const max = Math.max(1, ...list.map((x) => x[key]));
+  return list.length ? list.map((x) => `<div class="hbar"><div style="width:84px;font-weight:700">${esc(x.name)}</div><div class="tr"><i style="width:${x[key] / max * 100}%"></i></div><div style="width:92px;text-align:right;color:var(--muted)">${label(x)}</div></div>`).join('') : '<div style="color:var(--muted);font-size:13px">Нет данных за период</div>';
+}
+function vHome() {
+  const o = S.ov, k = o.kpi;
+  const K = (v, l, sub, acc) => `<div class="kpi"><b style="${acc ? 'color:var(--acc)' : ''}">${v}</b><span>${l}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const bonus = Object.values(k.bonuses).reduce((a, b) => a + b, 0);
+  return `<div class="screen">
+  <div class="chips">${[[7, '7 дней'], [30, '30 дней'], [90, '90 дней'], [365, 'Год']].map((d) => `<button class="chipb ${S.days === d[0] ? 'on' : ''}" data-days="${d[0]}">${d[1]}</button>`).join('')}</div>
+  ${o.alerts.map((a) => `<div class="alert">⚠️ ${esc(a)}</div>`).join('')}
+  ${o.queue.videos || o.queue.payouts ? `<div class="grid2">
+    <button class="card" data-tab="videos" style="text-align:left;cursor:pointer"><b class="disp" style="font-size:24px;color:var(--warn)">${o.queue.videos}</b><div style="font-size:13px;color:var(--muted)">роликов ждут${o.queue.flagged ? ` · ⚠️ ${o.queue.flagged}` : ''}</div></button>
+    <button class="card" data-tab="payouts" style="text-align:left;cursor:pointer"><b class="disp" style="font-size:24px;color:var(--warn)">${fmt(o.queue.payouts_sum)} ₽</b><div style="font-size:13px;color:var(--muted)">${o.queue.payouts} выводов ждут</div></button></div>` : ''}
+  <div class="label">Трафик и деньги</div>
+  <div class="grid2">
+    ${K(kfmt(k.views), 'просмотров', `${k.videos_approved} роликов принято`)}
+    ${K(fmt(k.clients), 'клиентов пришло', k.conv != null ? `обменяли ${k.exchanged} · ${k.conv}%` : `обменяли ${k.exchanged}`, true)}
+    ${K(fmt(k.paid) + ' ₽', 'выплачено', `начислено ${fmt(k.accrued)} ₽`)}
+    ${K(k.cpa != null ? fmt(k.cpa) + ' ₽' : '—', 'цена клиента (CPA)', '(авторам + кэшбэк) ÷ обменявших')}
+    ${K(fmt(k.volume) + ' ₽', 'оборот клиентов', k.profit ? `прибыль ${fmt(k.profit)} ₽` : 'прибыль: передай profit_rub')}
+    ${K(k.roi != null ? (k.roi > 0 ? '+' : '') + k.roi + '%' : '—', 'окупаемость (ROI)', '(прибыль − расход) ÷ расход', k.roi > 0)}
+    ${K(k.cpm + ' ₽', 'цена 1 000 просмотров', 'без бонусов')}
+    ${K(fmt(k.owed) + ' ₽', 'на балансах авторов', 'будущие выводы')}
+    ${K(fmt(k.promo_done), 'промо-обменов', 'новые клиенты + кэшбэки')}
+    ${K(fmt(k.promo_disc) + ' ₽', 'кэшбэка выдано', 'входит в цену клиента')}
+  </div>
+  <div class="card"><b>Просмотры по дням</b>${bars(o.series.views)}</div>
+  <div class="card"><b>Клиенты по дням</b>${bars(o.series.clients)}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Откуда клиенты</b>${hbars(o.by_platform, 'came', (x) => `${x.came} · обм. ${x.exchanged}`)}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Просмотры по площадкам</b>${hbars(o.views_by_platform, 'views', (x) => kfmt(x.views))}</div>
+  <div class="card"><b>Выплаты по дням</b>${bars(o.series.paid)}</div>
+  <div class="label">Авторы</div>
+  <div class="grid3">${K(k.new_authors, 'новых')}${K(k.active_authors, 'активных')}${K(k.videos_rejected, 'отказов')}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Воронка новых авторов</b>
+    ${o.funnel.map((f, i) => { const base = Math.max(1, o.funnel[0][1]); return `<div class="hbar"><div style="width:120px;font-size:12px">${f[0]}</div><div class="tr"><i style="width:${f[1] / base * 100}%;animation-delay:${i * .08}s"></i></div><div style="width:64px;text-align:right;color:var(--muted)">${f[1]} · ${Math.round(f[1] / base * 100)}%</div></div>`; }).join('')}
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;gap:6px"><b>Топ по просмотрам</b>
+    ${o.top_views.length ? o.top_views.map((a, i) => `<div class="kv"><span>${i + 1}. ${esc(a.username ? '@' + a.username : a.id)}</span><b>${kfmt(a.views)} · ${fmt(a.amount)} ₽</b></div>`).join('') : '<div style="color:var(--muted);font-size:13px">Пока пусто</div>'}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:6px"><b>Топ по клиентам</b>
+    ${o.top_clients.length ? o.top_clients.map((a, i) => `<div class="kv"><span>${i + 1}. ${esc(a.username ? '@' + a.username : a.id)} (${esc(a.promo || '')})</span><b>${a.came} · обм. ${a.ex || 0}</b></div>`).join('') : '<div style="color:var(--muted);font-size:13px">Пока пусто — нужна связка с ботом обменника</div>'}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:6px"><b>Бонусы за период</b>
+    ${Object.keys(k.bonuses).length ? Object.entries(k.bonuses).map((b) => `<div class="kv"><span>${({ first: 'За первый ролик', milestone: 'За каждые N роликов', client: 'За клиентов', manual: 'Ручные' })[b[0]] || b[0]}</span><b>${fmt(b[1])} ₽</b></div>`).join('') + `<div class="kv"><span>Итого</span><b>${fmt(bonus)} ₽</b></div>` : '<div style="color:var(--muted);font-size:13px">Нет</div>'}</div>
+  </div>`;
+}
+
+// ── Ролики
+function vVideos() {
+  const list = S.videos;
+  return `<div class="screen">
+  <div class="tabs">${[['pending', 'Ждут'], ['approved', 'Принятые'], ['rejected', 'Отказы']].map((t) => `<button class="${S.vStatus === t[0] ? 'on' : ''}" data-vs="${t[0]}">${t[1]}</button>`).join('')}</div>
+  ${!list ? '<div class="skeleton"></div>' : !list.length ? '<div class="empty">Пусто 🎉</div>' : list.map((v) => `
+  <div class="card vcard">
+    <div class="row" style="justify-content:space-between"><b class="disp" style="font-size:17px">#${v.id} · ${esc(v.platform_name)}</b><span style="font-size:12px;color:var(--muted)">${ago(v.created)}</span></div>
+    <div class="row" style="justify-content:space-between;font-size:14px"><span>${esc(v.author.name)} · ${esc(v.author.level)}${v.author.strikes ? ` · <b style="color:var(--bad)">⚠️ ${v.author.strikes}</b>` : ''}</span><span class="chip">${esc(v.author.promo || '')}</span></div>
+    <a href="${esc(v.url)}" data-link="${esc(v.url)}" style="font-size:13px;word-break:break-all">${esc(v.url)}</a>
+    <div>
+      <div class="kv"><span>Заявлено</span><b>${fmt(v.views_claimed)}</b></div>
+      ${v.api_views != null ? `<div class="kv"><span>🤖 YouTube API</span><b>${fmt(v.api_views)} · ❤️ ${fmt(v.likes)} · 💬 ${fmt(v.comments)}</b></div>` : ''}
+      ${v.status === 'approved' ? `<div class="kv"><span>Засчитано</span><b>${fmt(v.views_final)} → ${fmt(v.amount)} ₽${v.auto ? ' · авто' : ''}</b></div>` : `<div class="kv"><span>К выплате</span><b>${fmt(v.estimate)} ₽</b></div>`}
+      ${v.reason ? `<div class="kv"><span>Причина</span><b>${esc(v.reason)}</b></div>` : ''}
+    </div>
+    ${v.flags ? `<div class="flag">⚠️ ${esc(v.flags)}</div>` : ''}
+    ${v.has_shot ? (S.shots[v.id] ? `<img class="shot" src="${S.shots[v.id]}" alt="Скрин статистики">` : `<button class="sbtn" data-shot="${v.id}">📷 Показать скрин</button>`) : ''}
+    ${v.status === 'pending' ? `
+    <div class="row"><input class="inp" id="vw${v.id}" type="number" inputmode="numeric" placeholder="Факт: ${v.api_views || v.views_claimed}" style="flex:1;height:44px"><button class="sbtn ok" data-approve="${v.id}" style="height:44px">✅ Принять</button></div>
+    <div class="chips">${REASONS.map((r) => `<button class="sbtn bad" data-reject="${v.id}:${r[0]}">${r[1]}</button>`).join('')}<button class="sbtn bad" data-ban="${v.author.id}">⛔ Бан</button></div>` : ''}
+  </div>`).join('')}
+  </div>`;
+}
+
+// ── Выводы
+function vPayouts() {
+  const list = S.payouts;
+  const total = (list || []).reduce((a, p) => a + p.amount, 0);
+  return `<div class="screen">
+  <div class="tabs" style="grid-template-columns:1fr 1fr 1fr">${[['pending', 'Ждут'], ['paid', 'Выплачено'], ['rejected', 'Отклонено']].map((t) => `<button class="${S.pStatus === t[0] ? 'on' : ''}" data-ps="${t[0]}">${t[1]}</button>`).join('')}</div>
+  ${list && list.length ? `<div class="card row" style="justify-content:space-between"><span style="color:var(--muted)">${list.length} шт.</span><b class="disp" style="font-size:20px;color:var(--acc)">${fmt(total)} ₽</b></div>` : ''}
+  ${!list ? '<div class="skeleton"></div>' : !list.length ? '<div class="empty">Пусто</div>' : list.map((p) => `
+  <div class="card vcard">
+    <div class="row" style="justify-content:space-between"><b class="disp" style="font-size:20px">${fmt(p.amount)} ₽</b>${p.vip ? '<span class="chip">⭐ Брокер — вне очереди</span>' : `<span style="font-size:12px;color:var(--muted)">${ago(p.created)}</span>`}</div>
+    <div style="font-size:14px">#${p.id} · ${esc(p.name)} · ${esc(p.method)}</div>
+    <div class="row" style="padding:8px 8px 8px 12px;border-radius:12px;background:var(--surf2)"><code style="flex:1;font-size:14px;word-break:break-all">${esc(p.details)}</code><button class="sbtn" data-copy="${esc(p.details)}">Копировать</button></div>
+    ${p.status === 'pending' ? `<div class="row"><button class="sbtn ok" style="flex:1" data-paid="${p.id}">💸 Выплачено</button><button class="sbtn bad" data-preject="${p.id}">↩ Отклонить</button></div>` : `<div style="font-size:12px;color:var(--muted)">${when(p.decided)}</div>`}
+  </div>`).join('')}
+  </div>`;
+}
+
+// ── Авторы
+function vAuthors() {
+  const list = S.authors;
+  return `<div class="screen">
+  <div class="row"><input class="inp" id="aq" placeholder="Ник, промокод или ID" value="${esc(S.aQ)}" style="flex:1"><button class="sbtn ok" data-a="search" style="height:50px">Найти</button></div>
+  <div class="chips">${[['views', 'Просмотры'], ['clients', 'Клиенты'], ['earned', 'Заработок'], ['new', 'Новые']].map((x) => `<button class="chipb ${S.aSort === x[0] ? 'on' : ''}" data-asort="${x[0]}">${x[1]}</button>`).join('')}</div>
+  ${!list ? '<div class="skeleton"></div>' : !list.length ? '<div class="empty">Никого не нашли</div>' : list.map((a) => `
+  <button class="row-item" data-author="${a.id}" style="${a.banned ? 'opacity:.55' : ''}">
+    <div class="pf" style="font-size:11px">${esc((a.promo || '?').slice(0, 3))}</div>
+    <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:15px">${esc(a.name)}${a.banned ? ' · ⛔' : ''}${a.strikes ? ` · ⚠️${a.strikes}` : ''}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(a.level)} · ${a.videos} рол. · ${a.clients} клиентов</div></div>
+    <div style="text-align:right"><div class="disp" style="font-weight:800">${kfmt(a.views)}</div><div style="font-size:11px;color:var(--muted)">${fmt(a.earned)} ₽</div></div>
+  </button>`).join('')}
+  </div>`;
+}
+function authorSheet(a) {
+  return `<div class="sheet-bg" data-close="1"><div class="sheet">
+    <div class="row" style="justify-content:space-between"><b class="disp" style="font-size:20px">${esc(a.name)}</b><button class="sbtn" data-close="1">✕</button></div>
+    <div>${[['ID', a.id], ['Промокод', a.promo], ['Уровень', a.level], ['Просмотров', fmt(a.views)], ['Роликов принято', a.videos], ['Клиентов', a.clients], ['Заработано', fmt(a.earned) + ' ₽'], ['Выведено', fmt(a.paid) + ' ₽'], ['На балансе', fmt(a.balance) + ' ₽'], ['Нарушений', a.strikes], ['С нами с', new Date(a.created * 1000).toLocaleDateString('ru-RU')]].map((x) => `<div class="kv"><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join('')}</div>
+    <div class="label">Бонус или штраф</div>
+    <div class="row"><input class="inp" id="bAmt" type="number" placeholder="+300 или -200" style="width:130px"><input class="inp" id="bNote" placeholder="За что" style="flex:1"></div>
+    <button class="btn" data-bonus="${a.id}">Начислить</button>
+    <div class="label">Написать автору</div>
+    <textarea class="inp" id="mTxt" rows="3" placeholder="Сообщение придёт от бота"></textarea>
+    <button class="btn-o" data-msg="${a.id}">Отправить</button>
+    <button class="sbtn ${a.banned ? 'ok' : 'bad'}" data-${a.banned ? 'unban' : 'ban'}="${a.id}" style="height:48px">${a.banned ? '✅ Разбанить' : '⛔ Забанить'}</button>
+  </div></div>`;
+}
+
+// ── Ещё
+function vMore() {
+  if (S.more === 'ideas') return vIdeas();
+  if (S.more === 'voices') return vVoices();
+  if (S.more === 'promo') return vPromo();
+  if (S.more === 'team') return vTeam();
+  if (S.more === 'broadcast') return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Рассылка</h2>
+    <div class="sub">Сообщение придёт всем авторам, кто принял правила и не забанен. Идеи: свежие хуки недели, итоги топа, новые бонусы.</div>
+    <textarea class="inp" id="bcTxt" rows="7" placeholder="Текст рассылки"></textarea><button class="btn" data-a="broadcast">📣 Разослать</button></div>`;
+  if (S.more === 'settings') return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Настройки</h2>
+    <div class="sub">Меняются сразу, без перезапуска бота. Правила и приложение подтянут новые цифры.</div>
+    ${!S.settings ? '<div class="skeleton"></div>' : S.settings.map((x) => `<div><label class="flabel" for="st_${x.key}">${esc(x.label)}</label><input class="inp" id="st_${x.key}" type="number" ${x.float ? 'step="0.0001" inputmode="decimal"' : 'inputmode="numeric"'} value="${x.value}"></div>`).join('') + '<button class="btn" data-a="saveSettings">Сохранить</button>'}</div>`;
+  if (S.more === 'export') return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Выгрузки</h2>
+    <div class="sub">Бот пришлёт CSV-файл в чат — открывается в Excel и Google Таблицах.</div>
+    ${[['videos', '🎬 Все ролики'], ['payouts', '💸 Все выплаты'], ['clients', '🚦 Клиенты в обменнике'], ['promo', '🎟 Промокоды и кэшбэк'], ['authors', '👥 Авторы']].map((x) => `<button class="btn-o" style="width:100%" data-export="${x[0]}">${x[1]}</button>`).join('')}</div>`;
+  if (S.more === 'help') return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Команды в чате бота</h2>
+    <div class="card">${[['/admin', 'открыть эту админку'], ['/stats', 'короткая статистика'], ['/traffic', 'трафик в обменник'], ['/pending', 'очередь'], ['/reply ID текст', 'ответить автору'], ['/broadcast текст', 'рассылка'], ['/ideas', 'топ идей'], ['/idea ID done', 'статус идеи'], ['/ban ID', 'бан'], ['/unban ID', 'разбан']].map((c) => `<div class="kv"><code>${c[0]}</code><span>${c[1]}</span></div>`).join('')}</div>
+    <div class="sub">Каждый день в 10:00 бот присылает сводку за сутки.</div></div>`;
+  const q = S.ov ? S.ov.queue : {};
+  return `<div class="screen"><h2 class="h2">Ещё</h2><div class="menu-list">
+    ${[['promo', '🎟 Промокоды', q.promo_paused ? '⏸ ' + q.promo_paused : ''], ['team', '👥 Админы и операторы', ''], ['voices', '🎙 Озвучки и баннер', ''], ['ideas', '💡 Идеи авторов', q.ideas ? q.ideas + ' новых' : ''], ['broadcast', '📣 Рассылка', ''], ['settings', '⚙️ Ставки и бонусы', ''], ['export', '📄 Выгрузки в Excel', ''], ['help', '⌨️ Команды бота', '']].map((m) => `<button data-more="${m[0]}">${m[1]}<span style="color:var(--warn);font-size:13px">${m[2]}</span></button>`).join('')}
+  </div></div>`;
+}
+function vVoices() {
+  const v = S.voices;
+  if (!v) return '<div class="screen"><button class="back" data-more="menu">← Назад</button><div class="skeleton"></div></div>';
+  return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Озвучки и баннер</h2>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <b>Фирменный баннер</b>
+    <div style="font-size:13px;color:var(--muted);line-height:1.5">${v.has_brand ? '✅ Файл «Баннер бренда.mp4» найден. Авторы получают его с персональным промокодом и основной озвучкой.' : '⚠️ Файла «Баннер бренда.mp4» в папке materials на сервере нет — авторы получают наш анимированный баннер.'}<br>Место и время промокода настраиваются в «Ставки и бонусы».</div>
+    <button class="btn-o" data-a="brandTest" style="width:100%">🎬 Прислать мне тест с моим промокодом</button>
+  </div>
+  ${v.tts ? `<div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <b>Новая озвучка</b>
+    <div class="flabel" style="margin:0">Фраза</div>
+    <div style="display:flex;flex-direction:column;gap:6px">${v.presets.map((p, i) => `<button class="sbtn ${S.vSel.phrase === i ? 'ok' : ''}" data-preset="${i}" style="height:auto;min-height:40px;padding:8px 12px;text-align:left;line-height:1.35">${esc(p)}</button>`).join('')}</div>
+    <div class="flabel" style="margin:4px 0 0">Голос</div>
+    <div class="chips">${v.voices.map((x) => `<button class="chipb ${S.vSel.voice === x.id ? 'on' : ''}" data-vvoice="${x.id}">${esc(x.label)}</button>`).join('')}</div>
+    <div class="flabel" style="margin:4px 0 0">Подача</div>
+    <div class="chips">${v.styles.map((x) => `<button class="chipb ${S.vSel.style === x.id ? 'on' : ''}" data-vstyle="${x.id}">${esc(x.label)}</button>`).join('')}</div>
+    <button class="btn" data-a="genVoice">🎙 Сгенерировать</button>
+  </div>` : '<div class="alert">Для генерации озвучек нужен ключ OPENAI_API_KEY на сервере.</div>'}
+  <div class="label">Готовые озвучки</div>
+  ${!v.items.length ? '<div class="empty">Пока нет. Сгенерируй первую выше.</div>' : v.items.map((x) => `
+  <div class="card vcard" style="${x.active ? 'border-color:var(--acc)' : ''}">
+    <div class="row" style="gap:12px"><button class="play" data-vplay="${esc(x.file)}" aria-label="Слушать">${S.playing === x.file ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="#0A0B0D"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="#0A0B0D"><path d="M8 5v14l11-7z"/></svg>'}</button>
+      <div style="flex:1;min-width:0"><div style="font-size:15px;line-height:1.4">${esc(x.text)}</div><div style="font-size:12px;color:var(--muted);margin-top:3px">${esc((v.voices.find((y) => y.id === x.voice) || {}).label || x.voice)} · ${when(x.created)}</div></div></div>
+    <div class="row">${x.active ? '<span class="chip">✓ Основная</span>' : `<button class="sbtn ok" data-vact="${esc(x.file)}:active">Сделать основной</button>`}<button class="sbtn bad" data-vact="${esc(x.file)}:delete">Удалить</button></div>
+  </div>`).join('')}
+  </div>`;
+}
+
+function vPromo() {
+  const p = S.promo;
+  if (!p) return '<div class="screen"><button class="back" data-more="menu">← Назад</button><div class="skeleton"></div></div>';
+  const k = p.kpi, r = p.rules;
+  const K = (v, l, sub, acc) => `<div class="kpi"><b style="${acc ? 'color:var(--acc)' : ''}">${v}</b><span>${l}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const maxR = Math.max(1, ...p.reasons.map((x) => x.n));
+  const STC = { pending: 'var(--warn)', done: 'var(--ok)', cancelled: 'var(--muted)', expired: 'var(--muted)' };
+  return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Промокоды</h2>
+  <div class="sub">${r.mode ? `Кэшбэк ${fmt(r.discount)} ₽ на второй обмен` : `Скидка ${fmt(r.discount)} ₽ сразу`} при обмене от ${fmt(r.min)} ₽. У кода ${r.max_uses} активаций и ${r.code_days} дней. Цифры и режим — в «Ставки и бонусы».${r.on ? '' : ' <b style="color:var(--bad)">Сейчас выключены.</b>'}</div>
+  <div class="chips">${[[7, '7 дней'], [30, '30 дней'], [90, '90 дней']].map((d) => `<button class="chipb ${S.pDays === d[0] ? 'on' : ''}" data-pdays="${d[0]}">${d[1]}</button>`).join('')}</div>
+  <div class="grid2">
+    ${K(fmt(k.done), 'новых клиентов по кодам', k.pending ? 'ждут обмена: ' + k.pending : '', true)}
+    ${r.mode ? K(k.returned_pct != null ? k.returned_pct + '%' : '—', 'вернулись за кэшбэком', fmt(k.cashback_n) + ' вторых обменов') : K(fmt(k.codes_used), 'кодов в работе', 'на паузе: ' + fmt(k.paused))}
+    ${K(fmt(k.discounts) + ' ₽', r.mode ? 'кэшбэка выдано' : 'скидок выдано', 'реальный расход')}
+    ${K(r.budget ? fmt(k.budget_used) + ' / ' + fmt(r.budget) : fmt(k.budget_used) + ' ₽', 'бюджет месяца', r.budget ? 'дальше кэшбэк не даётся' : 'без лимита')}
+    ${K(fmt(k.volume) + ' ₽', 'оборот по кодам', 'средний обмен ' + fmt(k.avg) + ' ₽')}
+    ${K(fmt(k.fails), 'отказов', 'из ' + fmt(k.checks) + ' проверок')}
+  </div>
+  ${p.suspicious.length ? `<div class="label">Подозрительное</div>${p.suspicious.map((x) => `<div class="alert">${x.kind === 'own' ? '🚩' : x.kind === 'paused' ? '⏸' : '⚠️'} ${esc(x.text)}${x.code ? ` <button class="sbtn" data-pone="${esc(x.code)}:resume" style="margin-left:6px;height:32px">Снять паузу</button>` : x.uid ? ` <button class="sbtn" data-pcode="${x.uid}:${x.kind === 'paused_author' ? 'resume' : 'pause'}" style="margin-left:6px;height:32px">${x.kind === 'paused_author' ? 'Снять паузу' : 'Пауза автора'}</button>` : ''}</div>`).join('')}` : ''}
+  ${p.reasons.length ? `<div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Почему отказывали</b>${p.reasons.map((x) => `<div class="hbar"><div style="width:130px;font-size:12px">${esc(x.name)}</div><div class="tr"><i style="width:${x.n / maxR * 100}%"></i></div><div style="width:40px;text-align:right;color:var(--muted)">${x.n}</div></div>`).join('')}</div>` : ''}
+  <div class="label">Коды</div>
+  ${p.codes.map((c) => { const SN = { active: 'активен', exhausted: 'разобрали', expired: 'истёк', paused: 'пауза', closed: 'закрыт' }; return `<div class="card vcard" style="padding:14px">
+    <div class="row" style="justify-content:space-between"><span class="chip">${esc(c.code)}</span><span style="font-size:13px">${esc(c.name)}${c.banned ? ' · ⛔' : ''}${c.own ? ' · 🚩 ' + c.own : ''}</span></div>
+    <div style="font-size:13px;color:var(--muted)">${SN[c.state] || c.state} · активаций ${c.used}/${c.max} · обменов ${c.done} · ${fmt(c.volume)} ₽ · скидок ${fmt(c.discounts)} ₽ · роликов ${c.videos} · отказов ${c.fails}</div>
+    <div class="row"><input class="inp" id="mx_${esc(c.code)}" type="number" placeholder="лимит" style="width:90px;height:40px"><button class="sbtn" data-plimit="${esc(c.code)}">Лимит</button><button class="sbtn" data-pone="${esc(c.code)}:extend">+7 дн</button><button class="sbtn ${c.state === 'paused' ? 'ok' : 'bad'}" data-pone="${esc(c.code)}:${c.state === 'paused' ? 'resume' : 'pause'}">${c.state === 'paused' ? '▶️' : '⏸'}</button><button class="sbtn bad" data-pone="${esc(c.code)}:close">✕</button></div>
+  </div>`; }).join('') || '<div class="empty">Кодов пока нет</div>'}
+  <div class="label">Последние применения</div>
+  ${p.recent.length ? p.recent.map((u) => `<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+    <div class="row" style="justify-content:space-between"><b>${u.kind === 'cashback' ? '💸 кэшбэк −' + fmt(u.discount) + ' ₽' : '🎟 ' + esc(u.code)}</b><span style="font-size:12px;font-weight:800;color:${STC[u.status] || 'var(--muted)'}">${esc(u.status)}</span></div>
+    <div style="font-size:12px;color:var(--muted)">${esc(u.author)} · клиент ${esc(u.client)} · ${fmt(u.amount)} ₽ · ${esc(u.source)} · ${when(u.created)}</div>
+    ${u.status === 'pending' || u.status === 'done' ? `<div><button class="sbtn bad" data-ucancel="${u.id}" style="height:32px">Отменить</button></div>` : ''}</div>`).join('') : '<div class="empty">Пока нет</div>'}
+  <button class="btn-o" style="width:100%" data-export="promo">📄 Выгрузить все применения в Excel</button>
+  </div>`;
+}
+
+function vTeam() {
+  const t = S.team;
+  if (!t) return '<div class="screen"><button class="back" data-more="menu">← Назад</button><div class="skeleton"></div></div>';
+  const row = (x, kind) => `<div class="kv"><span>${x.id}${x.name ? ' · ' + esc(x.name) : ''}</span>${(kind === 'adm' && (x.owner || !t.can_admins)) || (kind === 'op' && x.env) ? '<b style="color:var(--muted);font-weight:600">—</b>' : `<button class="sbtn bad" style="height:30px" data-tdel="${kind}:${x.id}">Убрать</button>`}</div>`;
+  return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Админы и операторы</h2>
+  <div class="sub">Человек пишет боту <code>/myid</code> и присылает тебе свой ID. После добавления ему придёт кнопка входа.</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Админы</b><div style="font-size:12px;color:var(--muted)">Полный доступ к админке. ${t.can_admins ? '' : 'Добавлять админов может только главный админ.'}</div>
+    ${t.admins.map((x) => row(x, 'adm')).join('')}
+    ${t.can_admins ? `<div class="row"><input class="inp" id="ta_id" type="number" placeholder="Telegram ID" style="width:140px"><input class="inp" id="ta_name" placeholder="Имя" style="flex:1"></div><button class="btn" data-tadd="adm">Добавить админа</button>` : ''}</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><b>Операторы обменника</b><div style="font-size:12px;color:var(--muted)">Видят только проверку промокодов и кэшбэка (/operator в боте).</div>
+    ${t.operators.map((x) => row(x, 'op')).join('') || '<div style="font-size:13px;color:var(--muted)">Пока нет</div>'}
+    <div class="row"><input class="inp" id="to_id" type="number" placeholder="Telegram ID" style="width:140px"><input class="inp" id="to_name" placeholder="Имя" style="flex:1"></div><button class="btn" data-tadd="op">Добавить оператора</button></div>
+  </div>`;
+}
+
+function vIdeas() {
+  const list = S.ideas;
+  return `<div class="screen"><button class="back" data-more="menu">← Назад</button><h2 class="h2">Идеи авторов</h2>
+  ${!list ? '<div class="skeleton"></div>' : !list.length ? '<div class="empty">Идей пока нет</div>' : list.map((i) => `
+  <div class="card vcard"><div class="row" style="justify-content:space-between"><b>#${i.id} · ❤️ ${i.likes}</b><span class="tag" style="background:var(--surf2);color:var(--muted)">${esc(i.status_name)}</span></div>
+    <div style="font-size:15px;line-height:1.45">${esc(i.text)}</div><div style="font-size:12px;color:var(--muted)">${esc(i.author)} · ${when(i.created)}</div>
+    <div class="chips">${[['progress', '🛠 В работу'], ['done', '🎉 Добавлено'], ['rejected', 'Отклонить']].filter((x) => x[0] !== i.status).map((x) => `<button class="sbtn ${x[0] === 'done' ? 'ok' : x[0] === 'rejected' ? 'bad' : ''}" data-idea="${i.id}:${x[0]}">${x[1]}</button>`).join('')}</div>
+  </div>`).join('')}</div>`;
+}
+
+const VIEWS = { home: vHome, videos: vVideos, payouts: vPayouts, authors: vAuthors, more: vMore };
+function render() {
+  if (!S.ov) return;
+  const main = document.getElementById('main'), top = main.scrollTop;
+  main.innerHTML = VIEWS[S.tab]();
+  const q = S.ov.queue;
+  document.getElementById('nav').innerHTML = [['home', 'Обзор', 0], ['videos', 'Ролики', q.videos], ['payouts', 'Выводы', q.payouts], ['authors', 'Авторы', 0], ['more', 'Ещё', q.ideas]]
+    .map((t) => `<button class="${S.tab === t[0] ? 'on' : ''}" data-tab="${t[0]}">${ico({ home: 'home', videos: 'vid', payouts: 'pay', authors: 'users', more: 'more' }[t[0]])}${t[1]}${t[2] ? `<span class="badge">${t[2]}</span>` : ''}</button>`).join('');
+  if (S.sheet) document.body.insertAdjacentHTML('beforeend', authorSheet(S.sheet));
+  main.scrollTop = S.keepScroll ? top : 0; S.keepScroll = false;
+}
+function closeSheet() { document.querySelectorAll('.sheet-bg').forEach((e) => e.remove()); S.sheet = null; }
+async function act(fn, msg) { try { const r = await fn(); okH(); if (msg) toast(msg); return r; } catch (e) { toast(e.message, true); } }
+
+document.addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-pone],[data-plimit],[data-pdays],[data-pcode],[data-rename],[data-ucancel],[data-tadd],[data-tdel],[data-preset],[data-vvoice],[data-vstyle],[data-vplay],[data-vact],[data-tab],[data-days],[data-vs],[data-ps],[data-approve],[data-reject],[data-ban],[data-unban],[data-shot],[data-paid],[data-preject],[data-copy],[data-asort],[data-author],[data-close],[data-bonus],[data-msg],[data-more],[data-idea],[data-export],[data-a],[data-link]');
+  if (!el) return;
+  const d = el.dataset;
+  if (d.close && e.target === el) return closeSheet();
+  if (d.link) { e.preventDefault(); if (tg) tg.openLink(d.link); else window.open(d.link, '_blank'); return; }
+  if (d.pone) { const i = d.pone.lastIndexOf(':'); const code = d.pone.slice(0, i), a = d.pone.slice(i + 1); if (a === 'close' && !(await ask('Закрыть код ' + code + ' навсегда?'))) return; await act(() => api(`/api/admin/promo/one/${encodeURIComponent(code)}/${a}`, a === 'extend' ? { days: 7 } : {}), 'Готово'); S.keepScroll = true; return load(); }
+  if (d.plimit) { const m = document.getElementById('mx_' + d.plimit).value; if (m === '') return toast('Введи лимит', true); await act(() => api(`/api/admin/promo/one/${encodeURIComponent(d.plimit)}/limit`, { max: +m }), 'Лимит изменён'); S.keepScroll = true; return load(); }
+  if (d.pdays) { S.pDays = +d.pdays; return load(); }
+  if (d.pcode) { const [id, a] = d.pcode.split(':'); await act(() => api(`/api/admin/promo/code/${id}/${a}`, {}), a === 'pause' ? 'Код на паузе' : 'Пауза снята'); S.keepScroll = true; return load(); }
+  if (d.rename) { const code = document.getElementById('rn' + d.rename).value.trim(); if (!code) return toast('Введи новый код', true); if (!(await ask('Сменить код на ' + code.toUpperCase() + '? Старый перестанет работать, автору придёт уведомление.'))) return; await act(() => api(`/api/admin/promo/code/${d.rename}/rename`, { code }), 'Код изменён'); S.keepScroll = true; return load(); }
+  if (d.ucancel) { if (!(await ask('Отменить это применение? Клиент сможет получить бонус снова.'))) return; await act(() => api(`/api/admin/promo/use/${d.ucancel}/cancel`, {}), 'Отменено'); S.keepScroll = true; return load(); }
+  if (d.tadd) { const p = d.tadd === 'adm' ? 'ta' : 'to'; const id = document.getElementById(p + '_id').value.trim(), name = document.getElementById(p + '_name').value.trim(); if (!id) return toast('Введи Telegram ID', true); await act(() => api(d.tadd === 'adm' ? '/api/admin/admins' : '/api/admin/operators', { id, name }), 'Добавлено, ему пришла кнопка входа'); return load(); }
+  if (d.tdel) { const [k, id] = d.tdel.split(':'); if (!(await ask('Убрать доступ?'))) return; await act(() => api(k === 'adm' ? '/api/admin/admins' : `/api/admin/operators/${id}/delete`, k === 'adm' ? { id, remove: true } : {}), 'Доступ убран'); return load(); }
+  if (d.preset) { S.vSel.phrase = +d.preset; S.keepScroll = true; return render(); }
+  if (d.vvoice || d.vstyle) { if (d.vvoice) S.vSel.voice = d.vvoice; else S.vSel.style = d.vstyle; S.keepScroll = true; return render(); }
+  if (d.vplay) {
+    if (window._aud) { window._aud.pause(); }
+    if (S.playing === d.vplay) { S.playing = null; S.keepScroll = true; return render(); }
+    try { const r = await fetch('/api/admin/voice/' + encodeURIComponent(d.vplay), { headers: { 'X-Init-Data': INIT } }); window._aud = new Audio(URL.createObjectURL(await r.blob())); window._aud.onended = () => { S.playing = null; S.keepScroll = true; render(); }; window._aud.play(); S.playing = d.vplay; } catch (err) { toast('Не воспроизвелось', true); }
+    S.keepScroll = true; return render();
+  }
+  if (d.vact) { const [f, a] = d.vact.split(':'); if (a === 'delete' && !(await ask('Удалить озвучку?'))) return; const r = await act(() => api('/api/admin/voice/' + encodeURIComponent(f) + '/' + a, {})); if (r && r.msg) toast(r.msg); S.keepScroll = true; return load(); }
+  if (d.tab) { haptic(); closeSheet(); S.tab = d.tab; if (d.tab === 'more') S.more = 'menu'; render(); return load(); }
+  if (d.days) { S.days = +d.days; haptic(); return load(); }
+  if (d.vs) { S.vStatus = d.vs; S.videos = null; render(); return load(); }
+  if (d.ps) { S.pStatus = d.ps; S.payouts = null; render(); return load(); }
+  if (d.asort) { S.aSort = d.asort; S.authors = null; render(); return load(); }
+  if (d.more) { S.more = d.more; S.ideas = S.settings = null; render(); return load(); }
+  if (d.approve) {
+    const id = d.approve, v = document.getElementById('vw' + id).value;
+    if (!(await ask(`Принять заявку #${id}${v ? ' с ' + fmt(v) + ' просмотров' : ''}?`))) return;
+    const r = await act(() => api(`/api/admin/videos/${id}/approve`, v ? { views: +v } : {}));
+    if (r) toast(r.msg); S.keepScroll = true; return load();
+  }
+  if (d.reject) { const [id, code] = d.reject.split(':'); if (!(await ask(`Отклонить #${id}: ${REASONS.find((r) => r[0] === code)[1]}?`))) return; await act(() => api(`/api/admin/videos/${id}/reject`, { code }), 'Отклонено'); S.keepScroll = true; return load(); }
+  if (d.ban || d.unban) { const id = d.ban || d.unban; if (!(await ask(d.ban ? 'Забанить автора? Его заявки в очереди будут отклонены.' : 'Разбанить автора?'))) return; await act(() => api(`/api/admin/authors/${id}/${d.ban ? 'ban' : 'unban'}`, {}), 'Готово'); closeSheet(); S.keepScroll = true; return load(); }
+  if (d.shot) { try { const r = await fetch('/api/admin/shot/' + d.shot, { headers: { 'X-Init-Data': INIT } }); if (!r.ok) throw new Error('Скрин не загрузился'); S.shots[d.shot] = URL.createObjectURL(await r.blob()); S.keepScroll = true; render(); } catch (err) { toast(err.message, true); } return; }
+  if (d.paid) { if (!(await ask('Отметить вывод #' + d.paid + ' как выплаченный? Автору придёт уведомление.'))) return; await act(() => api(`/api/admin/payouts/${d.paid}/paid`, {}), 'Отмечено 💸'); S.keepScroll = true; return load(); }
+  if (d.preject) { if (!(await ask('Отклонить вывод #' + d.preject + '? Сумма вернётся на баланс автора.'))) return; await act(() => api(`/api/admin/payouts/${d.preject}/reject`, {}), 'Отклонено'); S.keepScroll = true; return load(); }
+  if (d.copy) { navigator.clipboard ? navigator.clipboard.writeText(d.copy).then(() => { okH(); toast('Скопировано'); }).catch(() => prompt('Скопируй:', d.copy)) : prompt('Скопируй:', d.copy); return; }
+  if (d.author) { S.sheet = S.authors.find((a) => a.id === +d.author); haptic(); document.body.insertAdjacentHTML('beforeend', authorSheet(S.sheet)); return; }
+  if (d.bonus) { const amt = +document.getElementById('bAmt').value, note = document.getElementById('bNote').value; if (!amt) return toast('Укажи сумму', true); if (!(await ask(`${amt > 0 ? 'Начислить' : 'Списать'} ${fmt(Math.abs(amt))} ₽?`))) return; await act(() => api(`/api/admin/authors/${d.bonus}/bonus`, { amount: amt, note }), 'Готово'); closeSheet(); return load(); }
+  if (d.msg) { const text = document.getElementById('mTxt').value.trim(); if (!text) return; await act(() => api(`/api/admin/authors/${d.msg}/message`, { text }), 'Отправлено'); return closeSheet(); }
+  if (d.idea) { const [id, st] = d.idea.split(':'); await act(() => api(`/api/admin/ideas/${id}`, { status: st }), 'Статус обновлён, автор уведомлён'); return load(); }
+  if (d.export) { await act(() => api('/api/admin/export', { type: d.export }), 'Файл отправлен в чат с ботом 📄'); return; }
+  if (d.a === 'reload') { haptic(); return load(); }
+  if (d.a === 'genVoice') { const text = S.voices.presets[S.vSel.phrase]; toast('Генерирую… 5–15 секунд'); const r = await act(() => api('/api/admin/voices', { text, voice: S.vSel.voice, style: S.vSel.style }), 'Готово 🎙'); if (r) { S.keepScroll = true; await load(); } return; }
+  if (d.a === 'brandTest') { await act(() => api('/api/admin/brandtest', {}), 'Собираю — пришлю в чат с ботом через 1–2 минуты'); return; }
+  if (d.a === 'search') { S.aQ = document.getElementById('aq').value.trim(); S.authors = null; render(); return load(); }
+  if (d.a === 'broadcast') { const text = document.getElementById('bcTxt').value.trim(); if (text.length < 3) return toast('Пустой текст', true); if (!(await ask('Разослать всем авторам?'))) return; const r = await act(() => api('/api/admin/broadcast', { text })); if (r) toast(`Рассылка пошла: ${r.total} получателей`); return; }
+  if (d.a === 'saveSettings') { const body = {}; S.settings.forEach((x) => { body[x.key] = parseFloat(String(document.getElementById('st_' + x.key).value).replace(',', '.')); }); const r = await act(() => api('/api/admin/settings', body), 'Сохранено ✅'); if (r) S.settings = r.items; return render(); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'aq') { S.aQ = e.target.value.trim(); load(); } });
+load();
+setInterval(() => { if (S.tab === 'home' && !S.sheet) { S.keepScroll = true; load(); } }, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily FocusPay hot wallet backup
+
+[Timer]
+OnCalendar=*-*-* 00:20:00 UTC
+Persistent=true
+Unit=focuspay-wallet-backup.service
+
+[Install]
+WantedBy=timers.target

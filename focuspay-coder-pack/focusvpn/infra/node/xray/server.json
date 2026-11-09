@@ -1,0 +1,9 @@
+{
+  "log": { "loglevel": "warning" },
+  "inbounds": [{
+    "port": 10000, "listen": "127.0.0.1", "protocol": "vless",
+    "settings": { "clients": [{ "id": "REPLACE-UUID", "flow": "" }], "decryption": "none" },
+    "streamSettings": { "network": "ws", "wsSettings": { "path": "/vpn-ROTATE-ME" } }
+  }],
+  "outbounds": [{ "protocol": "freedom" }]
+}

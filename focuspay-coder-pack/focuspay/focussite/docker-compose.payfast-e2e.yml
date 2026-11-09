@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: ${STAGING_E2E_PAYFAST_DB:?required}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - payfast_e2e
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+      - /var/run/postgresql:mode=0775,size=8m
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+
+  payfast-e2e:
+    build:
+      context: ..
+      dockerfile: focussite/docker/payfast-e2e.Dockerfile
+    environment:
+      STAGING_E2E_PAYFAST: "1"
+      STAGING_E2E_PAYFAST_INTERNAL: "1"
+      STAGING_E2E_PAYFAST_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${STAGING_E2E_PAYFAST_DB}
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:?required}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?required}
+      PGDATABASE: ${STAGING_E2E_PAYFAST_DB:?required}
+      MIGRATIONS_DIR: /app/site/exchange-backend/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command:
+      - bash
+      - -ec
+      - >-
+        cd /app
+        && bash /app/focussite/docker/staging-db/00-apply-migrations.sh payments
+        && PYTHONPATH=/app:/app/site/exchange-backend
+           python -m unittest discover -s /app/site/exchange-backend/tests/e2e -p test_payfast_staging.py
+    networks:
+      - payfast_e2e
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    restart: "no"
+
+networks:
+  payfast_e2e:
+    internal: true
+
+volumes:
+  postgres:
+    name: ${STAGING_E2E_PAYFAST_VOLUME:?required}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FocusVPN</string>
+    <string name="vpn_notification_title">FocusVPN</string>
+    <string name="vpn_channel_status">Подключение</string>
+    <string name="vpn_channel_alerts">Подписка и обновления</string>
+</resources>

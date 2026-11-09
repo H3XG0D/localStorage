@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<!-- PROTOTYPE — throwaway. Three variants of the iPhone link handoff, switchable via ?variant=, next to the Telegram bot. Not production. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прототип · iPhone-ссылка FocusVPN</title>
+<style>
+  :root {
+    --bg: #14161c;
+    --chrome: #22262f;
+    --muted: #9aa3b2;
+    --text: #f2f4f8;
+    --line: #343a46;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  button, a { font: inherit; }
+  button { cursor: pointer; }
+  .proto {
+    padding: 10px 14px 0;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .proto h1 { font-size: 15px; font-weight: 650; margin: 0; letter-spacing: 0.01em; }
+  .proto .mark { color: #e2b340; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .bet { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+  .stage {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding: 10px 8px 132px;
+    align-items: flex-start;
+  }
+  .col { width: 250px; }
+  .col-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0 0 6px 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .device {
+    width: 250px;
+    height: 500px;
+    background: #0e1621;
+    border: 8px solid #2a2e33;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .device.ios { background: #000; border-color: #3a3a3c; }
+  .status {
+    height: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 18px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    flex: none;
+  }
+  .tg-head, .ios-head {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 8px;
+  }
+  .tg-head { background: #17212b; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #3e6d8e; color: #fff; display: grid; place-items: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .tg-head .who { font-size: 15px; font-weight: 650; }
+  .tg-head .sub { font-size: 12px; color: #7d8b99; }
+  .chat { flex: 1; padding: 12px 10px 16px; overflow: auto; }
+  .bubble {
+    background: #182533;
+    border-radius: 6px 14px 14px 14px;
+    padding: 8px 8px 8px;
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: #f5f7fa;
+  }
+  .bubble b { font-weight: 650; }
+  .bubble .dim { color: #8b9bab; }
+  .linkbox {
+    margin: 8px 0;
+    background: #101920;
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.35;
+    word-break: break-all;
+    color: #d6e4f0;
+  }
+  .kb { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+  .kb .row { display: flex; gap: 4px; }
+  .kb button, .kb .row button {
+    appearance: none;
+    border: 0;
+    background: rgba(91, 140, 190, 0.28);
+    color: #fff;
+    border-radius: 8px;
+    padding: 7px 6px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .kb button { width: 100%; }
+  .kb .row button { flex: 1; }
+  .kb button:hover, .mini button:hover, .phone-ui button:hover { filter: brightness(1.12); }
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    background: #2a3946;
+    color: #fff;
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .toast.on { opacity: 1; }
+
+  /* mini-app variant B */
+  .mini {
+    flex: 1;
+    background: #1c1c1e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 14px 16px;
+    overflow: auto;
+  }
+  .grab { width: 36px; height: 4px; border-radius: 4px; background: #3a3a3c; margin: 4px auto 12px; }
+  .mini h2 { font-size: 18px; margin: 0 0 6px; font-weight: 680; }
+  .mini p.lead { margin: 0 0 14px; color: #aeaeb2; font-size: 14px; line-height: 1.35; }
+  .card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #2c2c2e;
+    color: #fff;
+    border: 0;
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .card strong { display: block; font-size: 16px; margin-bottom: 2px; }
+  .card span { color: #aeaeb2; font-size: 13px; line-height: 1.3; }
+  .mini .linkbox { background: #000; }
+  .ghost {
+    background: transparent;
+    color: #64b5f6;
+    border: 0;
+    padding: 10px 0;
+    font-size: 15px;
+  }
+
+  /* QR bubble */
+  .photo {
+    background: #182533;
+    border-radius: 14px;
+    overflow: hidden;
+    width: 100%;
+  }
+  .qr-wrap { background: #fff; padding: 16px; display: grid; place-items: center; }
+  #qr { width: 168px; height: 168px; display: grid; background: #fff; }
+  #qr i { display: block; }
+  .photo .cap { padding: 8px 10px 10px; font-size: 14.5px; line-height: 1.35; }
+  .textlink { margin-top: 8px; }
+
+  /* iPhone insides */
+  .ios-head { background: #000; color: #fff; min-height: 44px; }
+  .ios-head .back { color: #0a84ff; background: none; border: 0; font-size: 16px; padding: 0; }
+  .ios-head h3 { margin: 0; font-size: 16px; font-weight: 650; flex: 1; text-align: center; }
+  .phone-ui { flex: 1; background: #000; color: #fff; padding: 8px 16px 20px; display: flex; flex-direction: column; }
+  .phone-ui h2 { font-size: 22px; margin: 8px 0 4px; font-weight: 700; }
+  .phone-ui .hint { color: #8e8e93; font-size: 14px; line-height: 1.35; margin: 0 0 16px; }
+  .big {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    background: #0a84ff;
+    color: #fff;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .big.green { background: #30d158; color: #04210e; }
+  .big.dark { background: #1c1c1e; color: #fff; }
+  .profile {
+    background: #1c1c1e;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .profile .name { font-size: 17px; font-weight: 650; }
+  .profile .meta { color: #8e8e93; font-size: 13px; margin-top: 3px; }
+  .on-dot { width: 10px; height: 10px; border-radius: 50%; background: #30d158; display: inline-block; margin-right: 6px; }
+  .sheet {
+    margin-top: auto;
+    background: #1c1c1e;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .sheet h4 { margin: 0 0 6px; font-size: 17px; }
+  .sheet p { margin: 0 0 12px; color: #aeaeb2; font-size: 14px; line-height: 1.35; }
+  .camera {
+    flex: 1;
+    margin: 0 -16px -20px;
+    background:
+      radial-gradient(circle at 50% 42%, transparent 0 108px, rgba(0,0,0,0.45) 109px);
+    background-color: #1a2740;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 28px;
+  }
+  .finder {
+    position: absolute;
+    left: 50%; top: 38%;
+    width: 180px; height: 180px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255,255,255,0.85);
+    border-radius: 18px;
+  }
+  .shutter {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 4px solid #fff;
+    background: transparent;
+    padding: 0;
+  }
+  .shutter::after {
+    content: "";
+    display: block;
+    width: 48px; height: 48px;
+    margin: 4px;
+    border-radius: 50%;
+    background: #fff;
+  }
+  .store-icon {
+    width: 64px; height: 64px; border-radius: 14px;
+    background: #5e5ce6; display: grid; place-items: center;
+    font-weight: 800; margin: 12px 0;
+  }
+  .appstore-btn {
+    background: #0a84ff; color: #fff; border: 0; border-radius: 20px;
+    padding: 7px 16px; font-weight: 650;
+  }
+
+  .switcher {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    background: #f4f1ea;
+    color: #1a1a1a;
+    border-radius: 14px;
+    padding: 8px 10px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 5;
+  }
+  .switcher .nav { display: flex; align-items: center; gap: 8px; }
+  .switcher .nav button {
+    width: 36px; height: 36px; border-radius: 10px;
+    border: 0; background: #1a1a1a; color: #fff; font-size: 18px;
+  }
+  .switcher .label { flex: 1; text-align: center; font-weight: 680; font-size: 14px; }
+  .switcher pre {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #3d3a34;
+    white-space: pre-wrap;
+  }
+  .switcher .reset {
+    border: 0; background: transparent; color: #6b645b;
+    font-size: 11px; padding: 0; text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+<header class="proto">
+  <div>
+    <div class="mark">Макет · не бот</div>
+    <h1>Как человек получает VPN на iPhone</h1>
+  </div>
+  <p class="bet" id="bet"></p>
+</header>
+<div class="stage" id="stage"></div>
+<div class="switcher">
+  <div class="nav">
+    <button type="button" id="prev" aria-label="Предыдущий вариант">←</button>
+    <div class="label" id="label"></div>
+    <button type="button" id="next" aria-label="Следующий вариант">→</button>
+  </div>
+  <pre id="state"></pre>
+  <button type="button" class="reset" id="reset">сбросить этот вариант</button>
+</div>
+<script>
+const LINK = "https://focuspay.org/vpn-sub/k7Qm9pLx";
+const UNTIL = "14.10.2026 18:40 МСК";
+const ORDER = ["A", "B", "C"];
+const META = {
+  A: {
+    name: "Ссылка в сообщении",
+    bet: "Одно сообщение бота. Ссылка, кнопка «скопировать», короткая инструкция. Какой клиент стоит на айфоне — человек решает сам."
+  },
+  B: {
+    name: "Сначала клиент",
+    bet: "Бот не показывает ссылку, пока человек не выбрал приложение. Инструкция и экран айфона подстраиваются под этот клиент."
+  },
+  C: {
+    name: "Камера и QR",
+    bet: "В чат уходит картинка. Человек наводит камеру айфона. Текстовая ссылка спрятана второй кнопкой."
+  }
+};
+
+const initial = () => ({
+  screen: "home",
+  copied: false,
+  toast: false,
+  client: null,
+  phone: "empty",
+  connected: false,
+  issued: false
+});
+
+let variant = ORDER.includes(new URLSearchParams(location.search).get("variant"))
+  ? new URLSearchParams(location.search).get("variant")
+  : "A";
+let s = initial();
+if (variant === "B") s.screen = "pick";
+if (variant === "C") { s.screen = "qr"; s.issued = true; s.phone = "camera"; }
+
+function setVariant(next) {
+  variant = next;
+  const url = new URL(location.href);
+  url.searchParams.set("variant", variant);
+  history.replaceState(null, "", url);
+  reset();
+}
+
+function reset() {
+  s = initial();
+  if (variant === "B") s.screen = "pick";
+  if (variant === "C") { s.screen = "qr"; s.issued = true; s.phone = "camera"; }
+  render();
+}
+
+function deviceLine() {
+  if (!s.issued) return "устройство в боте: ещё не заведено";
+  if (s.connected) return "устройство в боте: iPhone · подключено";
+  return "устройство в боте: iPhone · ссылка выдана, в сети нет";
+}
+
+function renderState() {
+  const lines = [
+    "variant: " + variant,
+    "экран бота: " + s.screen,
+    "клиент: " + (s.client || "—"),
+    "буфер: " + (s.copied ? LINK : "пусто"),
+    "экран iPhone: " + s.phone + (s.connected ? " · туннель включён" : ""),
+    deviceLine()
+  ];
+  document.getElementById("state").textContent = lines.join("\n");
+  document.getElementById("label").textContent = variant + " — " + META[variant].name;
+  document.getElementById("bet").textContent = META[variant].bet;
+}
+
+function kb(rows) {
+  return `<div class="kb">${rows.map(row =>
+    row.length === 1
+      ? `<button type="button" data-act="${row[0].act}">${row[0].label}</button>`
+      : `<div class="row">${row.map(b => `<button type="button" data-act="${b.act}">${b.label}</button>`).join("")}</div>`
+  ).join("")}</div>`;
+}
+
+function homeBubble() {
+  return `
+    <div class="bubble">
+      <b>FocusVPN</b><br><br>
+      <b>Подписка активна</b> · Месяц<br>
+      до ${UNTIL} · осталось 7 дней<br><br>
+      Баланс FocusPay: <b>1 240 ₽</b><br><br>
+      Тарифы открыты — продлить можно в любой момент, дни суммируются
+      ${kb([
+        [{ label: "Продлить подписку", act: "noop" }],
+        [{ label: "Устройства", act: "devices" }, { label: "Код для входа", act: "noop" }],
+        [{ label: "Скачать приложение", act: "noop" }],
+        [{ label: "iPhone — ссылка", act: "open-link" }],
+        [{ label: "Обновить", act: "noop" }]
+      ])}
+    </div>`;
+}
+
+function linkBubble() {
+  return `
+    <div class="bubble">
+      <b>iPhone</b><br><br>
+      Ссылка только для этого телефона. Android, который уже подключён, она не трогает.<br><br>
+      Откройте на айфоне любой клиент с подпиской, добавьте подписку и вставьте ссылку.<br>
+      <div class="linkbox">${LINK}</div>
+      <span class="dim">Живёт вместе с подпиской, до ${UNTIL}. Отвяжете iPhone в устройствах — ссылка погаснет.</span>
+      ${kb([
+        [{ label: s.copied ? "Скопировано" : "Скопировать ссылку", act: "copy" }],
+        [{ label: "« В меню", act: "home" }]
+      ])}
+    </div>`;
+}
+
+function devicesBubble() {
+  const iphone = s.issued
+    ? `<br>2. <b>iPhone</b> · iOS<br>   ${s.connected ? "подключено" : "не подключено"} · с 07.10.2026`
+    : "";
+  return `
+    <div class="bubble">
+      <b>Устройства</b><br><br>
+      1. <b>Pixel</b> · Android<br>
+         подключено · с 07.10.2026
+      ${iphone}
+      ${kb([
+        [{ label: "« В меню", act: "home" }],
+        [{ label: "iPhone — ссылка", act: "open-link" }]
+      ])}
+    </div>`;
+}
+
+function telegramA() {
+  const body = s.screen === "link" ? linkBubble() : s.screen === "devices" ? devicesBubble() : homeBubble();
+  return phoneChrome("tg", "Telegram", `
+    <div class="status"><span>9:41</span><span>LTE</span></div>
+    <div class="tg-head"><div class="avatar">F</div><div><div class="who">FocusVPN</div><div class="sub">бот</div></div></div>
+    <div class="chat">${body}</div>
+    <div class="toast ${s.toast ? "on" : ""}">Ссылка скопирована</div>
+  `);
+}
+
+function clientPhone(title, body) {
+  return phoneChrome("ios", "iPhone", `
+    <div class="status"><span>9:41</span><span>LTE</span></div>
+    <div class="ios-head"><button class="back" type="button" data-act="phone-back">‹</button><h3>${title}</h3><span style="width:24px"></span></div>
+    <div class="phone-ui">${body}</div>
+  `);
+}
+
+function phoneEmpty() {
+  return clientPhone("Подписки", `
+    <h2>Пусто</h2>
+    <p class="hint">Клиент уже стоит. Подписки FocusVPN в нём ещё нет — её добавляют ссылкой из бота.</p>
+    <button class="big" type="button" data-act="paste" ${s.copied ? "" : "disabled style='opacity:.45'"}>Вставить ссылку из буфера</button>
+    <p class="hint" style="margin-top:10px">${s.copied ? "Буфер заполнен. Можно вставлять." : "Сначала нажмите «Скопировать» в боте."}</p>
+  `);
+}
+
+function phoneReady() {
+  return clientPhone("Подписки", `
+    <div class="profile">
+      <div class="name">FocusVPN</div>
+      <div class="meta">Германия · до 14 октября</div>
+    </div>
+    <button class="big green" type="button" data-act="connect">Подключить</button>
+  `);
+}
+
+function phoneOn() {
+  return clientPhone("FocusVPN", `
+    <h2><span class="on-dot"></span>Включено</h2>
+    <p class="hint">Трафик идёт через ноду. В боте этот iPhone станет «подключено».</p>
+    <div class="profile">
+      <div class="name">14 октября, 18:40</div>
+      <div class="meta">конец подписки</div>
+    </div>
+    <button class="big dark" type="button" data-act="disconnect">Отключить</button>
+  `);
+}
+
+function phoneA() {
+  if (s.connected || s.phone === "on") return phoneOn();
+  if (s.phone === "ready") return phoneReady();
+  return phoneEmpty();
+}
+
+const CLIENTS = {
+  incy: {
+    name: "INCY",
+    blurb: "Обычно есть в российском App Store.",
+    steps: "В приложении: «+» → добавить подписку → вставить ссылку."
+  },
+  happ: {
+    name: "Happ",
+    blurb: "Из российского App Store его убирали. Подходит, если уже стоит или Apple ID другой страны.",
+    steps: "В приложении: «+» → вставить из буфера обмена."
+  },
+  other: {
+    name: "Другой клиент",
+    blurb: "Любое приложение, которое умеет импорт подписки по URL.",
+    steps: "Ищите пункт «подписка», «subscription» или «импорт по URL»."
+  }
+};
+
+function telegramB() {
+  let inner;
+  if (s.screen === "pick") {
+    inner = `
+      <div class="grab"></div>
+      <h2>Чем пользуетесь на iPhone?</h2>
+      <p class="lead">Ссылку пришлём следующим экраном — под выбранное приложение. Android она не затронет.</p>
+      ${Object.entries(CLIENTS).map(([id, c]) =>
+        `<button class="card" type="button" data-act="pick:${id}"><strong>${c.name}</strong><span>${c.blurb}</span></button>`
+      ).join("")}
+      <button class="ghost" type="button" data-act="need-app">У меня ещё ничего не стоит</button>
+    `;
+  } else {
+    const c = CLIENTS[s.client];
+    inner = `
+      <div class="grab"></div>
+      <h2>${c.name}</h2>
+      <p class="lead">${c.steps}</p>
+      <div class="linkbox">${LINK}</div>
+      <p class="lead">До ${UNTIL}. Отвязка iPhone в боте гасит ссылку.</p>
+      <button class="big" type="button" data-act="copy">${s.copied ? "Скопировано" : "Скопировать ссылку"}</button>
+      <button class="ghost" type="button" data-act="back-pick">Другой клиент</button>
+    `;
+  }
+  return phoneChrome("tg", "Telegram · карточка", `
+    <div class="status"><span>9:41</span><span>LTE</span></div>
+    <div class="tg-head"><div class="avatar">F</div><div><div class="who">FocusVPN</div><div class="sub">открытая карточка</div></div></div>
+    <div class="mini">${inner}</div>
+    <div class="toast ${s.toast ? "on" : ""}">Ссылка скопирована</div>
+  `);
+}
+
+function phoneB() {
+  if (s.connected) return phoneOn();
+  if (s.screen === "pick" && s.phone === "store") {
+    return clientPhone("App Store", `
+      <div class="store-icon">IN</div>
+      <h2 style="font-size:22px">Клиент для подписки</h2>
+      <p class="hint">Макет магазина. В российском App Store набор таких приложений меняется, бот не должен обещать конкретное имя навсегда.</p>
+      <button class="appstore-btn" type="button" data-act="installed">Загрузить</button>
+    `);
+  }
+  if (s.phone === "ready" || s.screen === "guide") {
+    const name = s.client ? CLIENTS[s.client].name : "Клиент";
+    if (s.phone !== "ready") {
+      return clientPhone(name, `
+        <h2>Добавить</h2>
+        <p class="hint">${s.client ? CLIENTS[s.client].steps : ""}</p>
+        <button class="big" type="button" data-act="paste" ${s.copied ? "" : "disabled style='opacity:.45'"}>Вставить ссылку</button>
+      `);
+    }
+    return phoneReady();
+  }
+  return clientPhone("iPhone", `
+    <h2>Ждёт выбор</h2>
+    <p class="hint">Пока в боте не выбран клиент, на айфоне нечего показывать — ссылки ещё нет.</p>
+    <button class="big dark" type="button" data-act="need-app">Приложения нет</button>
+  `);
+}
+
+function qrGrid() {
+  const n = 29;
+  const cells = Array.from({ length: n * n }, () => 0);
+  const set = (x, y, v) => { if (x >= 0 && y >= 0 && x < n && y < n) cells[y * n + x] = v; };
+  function finder(ox, oy) {
+    for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) {
+      const edge = x === 0 || y === 0 || x === 6 || y === 6;
+      const core = x >= 2 && x <= 4 && y >= 2 && y <= 4;
+      set(ox + x, oy + y, edge || core ? 1 : 0);
+    }
+  }
+  finder(0, 0); finder(n - 7, 0); finder(0, n - 7);
+  let h = 2166136261;
+  for (const ch of LINK) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const i = y * n + x;
+    if (cells[i]) continue;
+    if (x < 8 && y < 8) continue;
+    if (x > n - 9 && y < 8) continue;
+    if (x < 8 && y > n - 9) continue;
+    h = Math.imul(h ^ (x * 31 + y), 16777619);
+    cells[i] = (h >>> 0) % 3 === 0 ? 1 : 0;
+  }
+  return cells.map(v => `<i style="background:${v ? "#111" : "#fff"}"></i>`).join("");
+}
+
+function telegramC() {
+  const text = s.screen === "text";
+  const body = text ? `
+    <div class="bubble">
+      <b>Ссылка текстом</b>
+      <div class="linkbox">${LINK}</div>
+      <span class="dim">Та же подписка, что в коде. До ${UNTIL}.</span>
+      ${kb([
+        [{ label: s.copied ? "Скопировано" : "Скопировать", act: "copy" }],
+        [{ label: "« Снова код", act: "show-qr" }]
+      ])}
+    </div>` : `
+    <div class="photo">
+      <div class="qr-wrap"><div id="qr" style="grid-template-columns:repeat(29,1fr)">${qrGrid()}</div></div>
+      <div class="cap">Наведите камеру iPhone. Откроется страница подписки, дальше — клиент, который уже стоит.</div>
+    </div>
+    ${kb([[{ label: "Нет камеры — прислать ссылку", act: "show-text" }]])}
+  `;
+  return phoneChrome("tg", "Telegram", `
+    <div class="status"><span>9:41</span><span>LTE</span></div>
+    <div class="tg-head"><div class="avatar">F</div><div><div class="who">FocusVPN</div><div class="sub">бот</div></div></div>
+    <div class="chat">${body}</div>
+    <div class="toast ${s.toast ? "on" : ""}">Ссылка скопирована</div>
+  `);
+}
+
+function phoneC() {
+  if (s.connected) return phoneOn();
+  if (s.phone === "sheet") {
+    return clientPhone("Камера", `
+      <div class="camera" style="margin-bottom:12px;min-height:220px;border-radius:16px"></div>
+      <div class="sheet">
+        <h4>focuspay.org</h4>
+        <p>Открыть подписку FocusVPN в клиенте, который умеет такие ссылки?</p>
+        <button class="big" type="button" data-act="open-client">Открыть</button>
+        <button class="ghost" type="button" data-act="no-client">Клиента нет</button>
+      </div>
+    `);
+  }
+  if (s.phone === "safari") {
+    return clientPhone("Safari", `
+      <h2 style="font-size:22px">Нужен клиент</h2>
+      <p class="hint">Страница подписки открылась, но вставлять её некуда. Поставьте приложение с импортом подписки и вернитесь к этой ссылке.</p>
+      <div class="linkbox">${LINK}</div>
+      <button class="big" type="button" data-act="paste">Вставить в клиент</button>
+    `);
+  }
+  if (s.phone === "ready") return phoneReady();
+  return clientPhone("Камера", `
+    <div class="camera">
+      <div class="finder"></div>
+      <button class="shutter" type="button" data-act="scan" aria-label="Сканировать"></button>
+    </div>
+  `);
+}
+
+function phoneChrome(kind, label, inner) {
+  return `<div class="col"><p class="col-label">${label}</p><div class="device ${kind === "ios" ? "ios" : ""}">${inner}</div></div>`;
+}
+
+function render() {
+  const left = variant === "A" ? telegramA() : variant === "B" ? telegramB() : telegramC();
+  const right = variant === "A" ? phoneA() : variant === "B" ? phoneB() : phoneC();
+  document.getElementById("stage").innerHTML = left + right;
+  renderState();
+}
+
+function flash() {
+  s.toast = true;
+  render();
+  setTimeout(() => { s.toast = false; render(); }, 900);
+}
+
+function onAct(act) {
+  if (act === "noop") return;
+  if (act === "home") { s.screen = "home"; render(); return; }
+  if (act === "devices") { s.screen = "devices"; render(); return; }
+  if (act === "open-link") { s.screen = "link"; s.issued = true; render(); return; }
+  if (act === "copy") { s.copied = true; flash(); return; }
+  if (act === "paste") {
+    if (!s.copied && variant !== "C") return;
+    s.copied = true;
+    s.phone = "ready";
+    s.issued = true;
+    render();
+    return;
+  }
+  if (act === "connect" || act === "open-client") {
+    s.connected = true;
+    s.phone = "on";
+    s.issued = true;
+    render();
+    return;
+  }
+  if (act === "disconnect") { s.connected = false; s.phone = "ready"; render(); return; }
+  if (act === "phone-back") {
+    if (s.connected) { s.connected = false; s.phone = "ready"; }
+    else if (s.phone === "ready") s.phone = variant === "C" ? "camera" : "empty";
+    render();
+    return;
+  }
+  if (act.startsWith("pick:")) {
+    s.client = act.split(":")[1];
+    s.screen = "guide";
+    s.issued = true;
+    s.phone = "empty";
+    render();
+    return;
+  }
+  if (act === "back-pick") {
+    s.screen = "pick";
+    s.client = null;
+    s.phone = "empty";
+    s.copied = false;
+    render();
+    return;
+  }
+  if (act === "need-app") { s.phone = "store"; render(); return; }
+  if (act === "installed") { s.client = s.client || "incy"; s.phone = "empty"; s.screen = "guide"; render(); return; }
+  if (act === "show-text") { s.screen = "text"; render(); return; }
+  if (act === "show-qr") { s.screen = "qr"; s.phone = "camera"; render(); return; }
+  if (act === "scan") { s.phone = "sheet"; render(); return; }
+  if (act === "no-client") { s.phone = "safari"; render(); return; }
+}
+
+document.getElementById("stage").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-act]");
+  if (!btn || btn.disabled) return;
+  onAct(btn.dataset.act);
+});
+
+function cycle(dir) {
+  const i = ORDER.indexOf(variant);
+  setVariant(ORDER[(i + dir + ORDER.length) % ORDER.length]);
+}
+document.getElementById("prev").onclick = () => cycle(-1);
+document.getElementById("next").onclick = () => cycle(1);
+document.getElementById("reset").onclick = reset;
+document.addEventListener("keydown", (e) => {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  if (e.key === "ArrowLeft") cycle(-1);
+  if (e.key === "ArrowRight") cycle(1);
+});
+
+const boot = new URL(location.href);
+if (!boot.searchParams.get("variant")) {
+  boot.searchParams.set("variant", variant);
+  history.replaceState(null, "", boot);
+}
+render();
+</script>
+</body>
+</html>

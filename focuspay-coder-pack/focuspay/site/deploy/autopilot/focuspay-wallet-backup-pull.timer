@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly pull of FocusPay wallet backups
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=focuspay-wallet-backup-pull.service
+
+[Install]
+WantedBy=timers.target

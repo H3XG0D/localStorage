@@ -1,0 +1,173 @@
+/* FocusPay Panel — dark admin/operator UI. Ported from the focus-panel Vue
+   reference design system. Self-contained: does not import the public site theme. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+  --color-overlay: var(--bg-overlay);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-red: var(--red);
+  --color-blue: var(--blue);
+  --color-purple: var(--purple);
+  --color-orange: var(--orange);
+}
+
+:root {
+  --bg-base: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-overlay: #222222;
+
+  --border: #252525;
+  --border-strong: #333333;
+
+  --text-primary: #f0f0f0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #808080;
+  --text-inverse: #0a0a0a;
+
+  --accent: #ffffff;
+  --accent-hover: #e0e0e0;
+
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+
+  --green-bg: rgba(34, 197, 94, 0.1);
+  --yellow-bg: rgba(234, 179, 8, 0.1);
+  --red-bg: rgba(239, 68, 68, 0.1);
+  --blue-bg: rgba(96, 165, 250, 0.1);
+  --purple-bg: rgba(167, 139, 250, 0.1);
+  --orange-bg: rgba(251, 146, 60, 0.1);
+
+  --radius-sm: 6px;
+  --radius: 9px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.8);
+
+  --sidebar-w: 232px;
+  --topbar-h: 56px;
+  --save-bar-h: 4.5rem;
+
+  --transition: 140ms ease;
+  --transition-slow: 280ms ease;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font-family: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+@keyframes panel-modal-in { from { opacity: 0; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Chart reveal: pathLength=1 normalises the dash so any curve draws in evenly. */
+@keyframes panel-chart-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes panel-chart-fade { from { opacity: 0; } to { opacity: 1; } }
+.panel-chart-line { stroke-dasharray: 1; animation: panel-chart-draw 620ms ease-out both; }
+.panel-chart-area { animation: panel-chart-fade 620ms ease-out both; }
+@media (prefers-reduced-transparency: reduce) { .backdrop-blur-sm { backdrop-filter: none; } }
+@media (max-width: 640px) { input, select, button { min-height: 36px; } }
+
+/* Keep the salary split slider aligned across browsers and panel breakpoints. */
+.panel-range {
+  appearance: none;
+  width: 100%;
+  height: 36px;
+  min-width: 0;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.panel-range:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.panel-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--blue) 0 var(--range-progress, 0%),
+    var(--bg-overlay) var(--range-progress, 0%) 100%
+  );
+}
+.panel-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid var(--bg-surface);
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+}
+.panel-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-overlay);
+}
+.panel-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--blue);
+}
+.panel-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--bg-surface);
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+}
+
+/* SaveBar lives in the page; the scrollport is PanelShell <main>. Without
+   scroll-padding, keyboard focus on a late field lands under the sticky bar. */
+[data-panel-scroll]:has([data-save-bar]) {
+  scroll-padding-bottom: var(--save-bar-h);
+}

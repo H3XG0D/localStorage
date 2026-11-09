@@ -1,0 +1,76 @@
+# FocusVPN local development stack (Podman-first; works with `podman compose`).
+# Fully-qualified image names so Podman does not prompt for a registry.
+#
+#   podman compose -f infra/compose/docker-compose.yml up -d
+#
+# Credentials here are DEVELOPMENT-ONLY. Never reuse in production.
+name: focusvpn-dev
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16
+    environment:
+      POSTGRES_USER: focusvpn
+      POSTGRES_PASSWORD: focusvpn
+      POSTGRES_DB: focusvpn
+    ports:
+      - "5432:5432"
+    volumes:
+      - focusvpn_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U focusvpn -d focusvpn"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Redis is dev-stack INFRASTRUCTURE PREPARATION only in M2. The architecture
+  # anticipates a Redis-backed rate limiter / pub-sub (ADR-004), but M2 does NOT
+  # move the limiter to Redis — the in-memory limiter remains in use.
+  redis:
+    image: docker.io/library/redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - focusvpn_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # M4: node-agent (dev only). Runs against the CP agent listener (:8443).
+  # The agent needs CAP_NET_ADMIN to manage the AmneziaWG interface.
+  # awg-quick / awg must be installed on the host or in the container image.
+  #
+  # To enable: set AGENT_NODE_TOKEN to a token seeded via `make seed-agent-token`
+  # before starting this service.
+  #
+  # SECURITY: AGENT_NODE_TOKEN here is a dev-only placeholder; rotate after use.
+  node-agent:
+    build:
+      context: ../..
+      dockerfile: node-agent/Dockerfile
+    environment:
+      AGENT_NODE_ID: "${AGENT_NODE_ID:-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa}"
+      AGENT_CP_URL: "${AGENT_CP_URL:-https://host.containers.internal:8443}"
+      AGENT_NODE_TOKEN: "${AGENT_NODE_TOKEN:-}"
+      AGENT_CERT_FILE: /secrets/agent.crt
+      AGENT_KEY_FILE: /secrets/agent.key
+      AGENT_CA_FILE: /secrets/ca.crt
+      AGENT_INTERFACE: awg0
+    volumes:
+      - focusvpn_agent_secrets:/secrets
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    profiles:
+      - agent  # opt-in: podman compose --profile agent up
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  focusvpn_pg:
+  focusvpn_redis:
+  focusvpn_agent_secrets:

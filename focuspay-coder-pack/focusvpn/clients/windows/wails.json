@@ -1,0 +1,17 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "focusvpn-windows-gui",
+  "outputfilename": "focusvpn-windows-gui",
+  "frontend:dir": "../desktop/frontend",
+  "frontend:install": "",
+  "frontend:build": "",
+  "author": {
+    "name": "FocusVPN",
+    "email": ""
+  },
+  "info": {
+    "companyName": "FocusPay",
+    "productName": "FocusVPN",
+    "productVersion": "0.1.0"
+  }
+}

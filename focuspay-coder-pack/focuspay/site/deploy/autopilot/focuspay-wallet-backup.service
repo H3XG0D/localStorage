@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup FocusPay hot wallets and signer state
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/focuspay-backup-wallets

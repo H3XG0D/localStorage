@@ -1,0 +1,26 @@
+[Unit]
+Description=FocusPay Casino Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/focuspay-casino
+EnvironmentFile=/etc/focuspay/casino-bot.env
+Environment="PATH=/opt/focuspay-casino/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/focuspay-casino/venv/bin/python3 bot.py
+Restart=always
+RestartSec=10
+
+# Логирование
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=focuspay-casino-bot
+
+# Безопасность
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

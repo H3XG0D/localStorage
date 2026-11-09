@@ -1,0 +1,5 @@
+# Place release artifacts here (gitignored binaries OK via parent rules).
+# Expected layout after make release-all + copy:
+#   android/focusvpn-release.apk
+#   windows/focusvpn-windows.exe
+#   linux/focusvpn

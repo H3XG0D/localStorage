@@ -1,0 +1,17 @@
+[Unit]
+Description=FocusPay Telegram group antispam (polling)
+After=network.target
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/tg_bot_btc
+EnvironmentFile=/opt/tg_bot_btc/.env
+Environment=HOME=/var/lib/focuspay
+ExecStart=/opt/tg_bot_btc/venv/bin/python antispam_main.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

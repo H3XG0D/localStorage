@@ -1,0 +1,95 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+*.pem
+*.key
+*.p12
+.ssh_run.py
+
+# Dependencies and generated output
+**/node_modules/
+**/dist/
+**/.vite/
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.local-backup-*/
+
+# Local and production backups
+backups/
+**/backups/
+**/*.bak
+**/*.bak-*
+**/*.backup
+**/*.dump
+**/*.sql.gz
+
+# Local runtime data
+**/data/*.json
+**/data/*_chat_id
+**/home/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+
+# Temporary archives and deployment bundles
+*.tgz
+*.tar.gz
+*.zip
+/focuspay.zip
+**/*.backup-*
+/tmp/
+**/tmp/
+*.pdf
+
+# Production snapshots and copied server trees
+focussite/focuspay-main-site/
+
+# Local database exports
+ db/
+site/focuspay.org/
+focussite/frontend/backups/
+focus-panel/dist/
+focus-panel/node_modules/
+focussite/frontend/.local-backup-*/
+
+# Keep documented templates
+!.env.example
+!**/.env.example
+!**/.env.docker.example
+!site/deploy/*.conf
+!site/deploy/*.service
+!bot/tg_bot_btc/deploy/*.env.example
+!bot/tg_bot_btc/migrations/*.sql
+!site/exchange-backend/migrations/*.sql
+!bot/tg_bot_btc/**/*.py
+!site/exchange-backend/**/*.py
+!focussite/frontend/src/**
+!focus-panel/src/**
+!*.md
+!AGENTS.md
+!OPERATOR_ROLES_PAYROLL_PLAN.md
+!package.json
+!package-lock.json
+!requirements.txt
+!vite.config.ts
+!tsconfig*.json
+!index.html
+!panel.html
+!components.json
+!*.svg
+!*.png
+
+# Temporary deployment copies
+**/*.pre-*
+**/tmp_deploy/
+**/scripts/prod_*.py

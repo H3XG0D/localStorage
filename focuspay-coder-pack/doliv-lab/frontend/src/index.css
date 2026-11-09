@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-base text-[#fafafa] min-h-screen font-sans antialiased;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  .text-muted {
+    color: #c4c4cc !important;
+  }
+
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select {
+    color: #fafafa !important;
+    background-color: #2a2a30 !important;
+    -webkit-text-fill-color: #fafafa;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #a1a1aa !important;
+    opacity: 1;
+  }
+
+  /* Chrome autofill: prevent black-on-black */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #fafafa !important;
+    box-shadow: 0 0 0 1000px #2a2a30 inset !important;
+    transition: background-color 99999s ease-out;
+  }
+
+  select,
+  select.input,
+  option {
+    color: #fafafa !important;
+    background-color: #2a2a30 !important;
+  }
+
+  option {
+    background-color: #2a2a30 !important;
+    color: #fafafa !important;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+  }
+
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-hover;
+  }
+
+  .btn-secondary {
+    @apply btn bg-elevated text-[#fafafa] hover:bg-border border border-border;
+  }
+
+  .btn-quiet {
+    @apply btn bg-elevated text-[#fafafa] hover:bg-border;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent text-muted hover:text-[#fafafa] hover:bg-elevated;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600/90 text-white hover:bg-red-600;
+  }
+
+  .input {
+    @apply w-full px-3 py-2.5 border border-[#3f3f46] rounded-xl text-[#fafafa] focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent text-base;
+    background-color: #2a2a30 !important;
+    color: #fafafa !important;
+  }
+
+  .input::placeholder {
+    color: #a1a1aa !important;
+  }
+
+  .field-label {
+    @apply block text-sm font-medium text-[#e4e4e7] mb-1.5;
+  }
+
+  .card {
+    @apply bg-surface rounded-xl border border-border p-4 md:p-5 text-[#fafafa];
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-active { @apply badge bg-emerald-500/15 text-emerald-400; }
+  .badge-in_work { @apply badge bg-sky-500/15 text-sky-400; }
+  .badge-awaiting_doliv { @apply badge bg-amber-500/15 text-amber-400; }
+  .badge-doliv_in_progress { @apply badge bg-orange-500/15 text-orange-400; }
+  .badge-closed { @apply badge bg-zinc-500/15 text-zinc-400; }
+  .badge-archive { @apply badge bg-violet-500/15 text-violet-400; }
+  .badge-pending { @apply badge bg-amber-500/15 text-amber-400; }
+  .badge-in_progress { @apply badge bg-sky-500/15 text-sky-400; }
+  .badge-completed { @apply badge bg-emerald-500/15 text-emerald-400; }
+  .badge-cancelled { @apply badge bg-red-500/15 text-red-400; }
+
+  .table-wrap {
+    @apply overflow-x-auto rounded-xl border border-border;
+  }
+
+  .data-table {
+    @apply w-full text-sm text-[#fafafa];
+  }
+
+  .data-table th {
+    @apply text-left text-[#d4d4d8] font-medium px-4 py-3 bg-elevated/50 border-b border-border whitespace-nowrap;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 border-b border-border/50 whitespace-nowrap text-[#fafafa];
+  }
+
+  .data-table tbody tr:hover {
+    @apply bg-elevated/30;
+  }
+
+  .progress-bar {
+    @apply w-full bg-elevated rounded-full h-2 overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-accent rounded-full transition-all;
+  }
+}
+
+/* recharts dark theme */
+.recharts-cartesian-grid line {
+  stroke: #27272a;
+}
+.recharts-text {
+  fill: #b4b4be;
+  font-size: 11px;
+}

@@ -1,0 +1,23 @@
+[Unit]
+Description=FocusVPN control plane
+After=network-online.target postgresql.service docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=focusvpn
+Group=focusvpn
+EnvironmentFile=/etc/focusvpn/env
+WorkingDirectory=/opt/focusvpn
+ExecStart=/opt/focusvpn/bin/focusvpn-server
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/focusvpn/secrets /var/lib/focusvpn
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

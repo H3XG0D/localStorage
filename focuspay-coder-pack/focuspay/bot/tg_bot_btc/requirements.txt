@@ -1,0 +1,22 @@
+# Telegram bot (job-queue нужен для автообновления курсов раз в минуту)
+python-telegram-bot[job-queue,webhooks]>=22.7
+# Аккаунт для авточистки focus-чата: last seen Bot API не отдаёт
+telethon>=1.36.0
+
+# Database
+asyncpg>=0.29.0
+bcrypt>=4.2.0
+
+# HTTP / API
+aiohttp>=3.9.0
+requests>=2.31.0
+
+# Webhook server (callback от мерчанта)
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# Графическая капча
+Pillow>=10.0.0
+
+# Разбор PDF-чеков (текст, даты); без него остаётся только свой ToUnicode-декодер
+pypdf>=4.2.0

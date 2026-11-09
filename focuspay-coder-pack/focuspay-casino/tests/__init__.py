@@ -1,0 +1,1 @@
+"""Casino bot test package."""

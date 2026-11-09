@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FocusVPN</title>
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="screen-auth" class="screen active">
+      <div class="auth-hero">
+        <div class="mesh"></div>
+        <div class="brand">Focus<span>VPN</span></div>
+      </div>
+      <div class="auth-body">
+        <h1>Добро пожаловать<br />в Focus VPN</h1>
+        <p class="lead">Войдите по коду доступа<br />или через свой Telegram.</p>
+        <button class="btn" id="btn-code" type="button">Войти по коду</button>
+        <div class="or"><span></span><em>или</em><span></span></div>
+        <button class="btn telegram" id="btn-telegram" type="button">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          <span id="tg-label">Войти через Telegram</span>
+        </button>
+        <p class="err" id="auth-err"></p>
+        <button class="fine" id="btn-privacy" type="button">Продолжая, вы принимаете условия сервиса<br />и <span>политику конфиденциальности</span></button>
+      </div>
+    </section>
+
+    <section id="screen-home" class="screen">
+      <div class="mesh home-mesh"></div>
+      <div class="pad">
+        <div class="top">
+          <div class="brand small">Focus<span>VPN</span></div>
+          <button class="plus" id="plus-badge" type="button" hidden>
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2l1.6 6.2L20 10l-6.4 1.8L12 18l-1.6-6.2L4 10l6.4-1.8L12 2z"/></svg>
+            PLUS
+          </button>
+        </div>
+        <h1>Подключение</h1>
+        <p class="sub" id="home-sub">Самый быстрый сервер</p>
+        <button class="power" id="btn-connect" type="button">
+          <span class="power-ico" id="power-ico">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v8"/><path d="M7.2 6.2a8 8 0 1 0 9.6 0"/></svg>
+          </span>
+          <span id="power-label">Подключить</span>
+        </button>
+        <div class="status-block">
+          <div class="status-line">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v6c0 4.2 2.8 7.2 7 9 4.2-1.8 7-4.8 7-9V6l-7-3z"/></svg>
+            <span id="status-text">Вы не подключены</span>
+          </div>
+          <p class="hint" id="status-hint">Нажмите кнопку для подключения</p>
+          <p class="err" id="home-err"></p>
+        </div>
+        <button class="loc-card" id="home-location" type="button">
+          <div class="loc-kicker">ВАША ЛОКАЦИЯ <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></div>
+          <div class="loc-row">
+            <span class="flag" id="home-flag">⚡</span>
+            <span class="loc-text"><b id="home-title">Авто</b><small id="home-detail">Переключение само</small></span>
+            <span class="signal" id="home-signal"></span>
+            <svg class="chev" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+        </button>
+        <div class="speed">
+          <div><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg> <b id="down-mbps">—</b> <span>Мбит/с</span></div>
+          <i></i>
+          <div><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg> <b id="up-mbps">—</b> <span>Мбит/с</span></div>
+        </div>
+        <p class="ru-note">Российские сайты и приложения идут с IP компьютера</p>
+      </div>
+    </section>
+
+    <section id="screen-locations" class="screen">
+      <div class="pad tight">
+        <h1>Локации</h1>
+        <p class="lead">Выберите страну подключения.</p>
+        <div class="search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="loc-query" type="search" placeholder="Страна или город…" />
+          <button id="loc-clear" type="button" hidden>×</button>
+        </div>
+        <div class="chips" id="loc-chips"></div>
+        <div class="loc-head"><span>ДОСТУПНЫЕ ЛОКАЦИИ</span><span id="loc-count">0 / 0</span></div>
+        <div id="locations-list"></div>
+        <p class="err" id="loc-err"></p>
+        <div class="empty" id="loc-empty" hidden>
+          <p class="empty-title">Пока ничего не нашли</p>
+          <p class="lead">Попробуйте другую страну, город<br />или сбросьте фильтры.</p>
+          <button class="btn ghost" id="loc-reset" type="button">Сбросить поиск</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-account" class="screen">
+      <div class="pad">
+        <div class="top">
+          <h1>Аккаунт</h1>
+          <button class="icon-btn" id="btn-about" type="button" title="О приложении">⚙</button>
+        </div>
+        <div class="who">
+          <div class="avatar" id="avatar">F</div>
+          <div><b id="who-name">Focus</b><small id="who-email">FocusVPN</small></div>
+        </div>
+        <div class="sub-card">
+          <div class="mesh"></div>
+          <div class="sub-inner">
+            <div class="sub-title"><b>Focus</b> <span id="plan-name">VPN</span><em id="sub-pill" hidden>Активна</em></div>
+            <p id="sub-devices">Подписка не активна.</p>
+            <div class="sub-foot">
+              <div><small>Ваша подписка до</small><b id="sub-until">Нет активной подписки</b></div>
+              <div class="days" id="sub-days" hidden><b></b><span></span></div>
+            </div>
+            <div class="bar"><i id="sub-bar"></i></div>
+            <button class="manage" id="btn-manage" type="button">Управлять подпиской</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div><b id="stat-locs">0</b><span>локаций</span></div>
+          <i></i>
+          <div><b id="stat-devs">0/0</b><span>устройств</span></div>
+        </div>
+        <div class="kicker">ВАШ АККАУНТ</div>
+        <div class="menu">
+          <button type="button" data-sheet="devices">Мои устройства <small id="menu-devs"></small></button>
+          <button type="button" data-sheet="privacy">Приватность</button>
+          <button type="button" data-sheet="support">Помощь и поддержка</button>
+        </div>
+        <button class="logout" id="btn-logout" type="button">Выйти из аккаунта</button>
+        <p class="err" id="account-err"></p>
+      </div>
+    </section>
+  </div>
+
+  <nav id="tabbar" class="tabbar" hidden>
+    <button type="button" data-nav="home" class="active">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3 5 6v6c0 4.2 2.8 7.2 7 9 4.2-1.8 7-4.8 7-9V6l-7-3z"/></svg>
+      Подключение
+    </button>
+    <button type="button" data-nav="locations">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      Локации
+    </button>
+    <button type="button" data-nav="account">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.2"/><path d="M5 19c1.4-3 3.8-4.5 7-4.5S17.6 16 19 19"/></svg>
+      Аккаунт
+    </button>
+  </nav>
+
+  <div id="sheet" class="sheet" hidden>
+    <button class="sheet-bg" id="sheet-bg" type="button"></button>
+    <div class="sheet-card">
+      <div class="sheet-head"><b id="sheet-title"></b><button id="sheet-close" type="button">×</button></div>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
+  <script src="preview.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

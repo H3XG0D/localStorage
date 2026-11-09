@@ -1,0 +1,130 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      POSTGRES_DB: ${STAGING_E2E_CASINO_DB:?required}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks: [casino_e2e]
+    tmpfs:
+      - "/tmp:mode=1777,size=32m"
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: "no"
+
+  redis:
+    image: redis:7-alpine
+    networks: [casino_e2e]
+    user: "999:999"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:mode=1777,size=32m"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: "no"
+
+  bootstrap:
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER:?required}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?required}
+      PGDATABASE: ${STAGING_E2E_CASINO_DB:?required}
+      MIGRATIONS_DIR: /app/backend/migrations
+      BOT_MIGRATIONS_DIR: /opt/tg_bot_btc/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["bash", "/app/staging-db/00-apply-migrations.sh", "pvp"]
+    volumes:
+      - ./docker/staging-db:/app/staging-db:ro
+    networks: [casino_e2e]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:mode=1777,size=64m"
+    restart: "no"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file: ${STAGING_E2E_CASINO_ENV_FILE:?required}
+    environment:
+      ENVIRONMENT: staging
+      STAGING_E2E: "1"
+      STAGING_DISABLE_BACKGROUND_TASKS: "true"
+      CASINO_EXCHANGER_ID: "91001"
+      DATABASE_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${STAGING_E2E_CASINO_DB}
+      REDIS_URL: redis://redis:6379/0
+      PUBLIC_SITE_URL: http://backend:8000
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: ["python", "/runtime/run_backend.py"]
+    networks: [casino_e2e]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:mode=1777,size=128m"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"from urllib.request import urlopen; raise SystemExit(0 if urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: "no"
+
+  casino-e2e:
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file:
+      - ${STAGING_E2E_CASINO_ENV_FILE:?required}
+      - ${STAGING_E2E_CASINO_CASINO_ENV_FILE:?required}
+    environment:
+      ENVIRONMENT: staging
+      STAGING_E2E: "1"
+      STAGING_DISABLE_BACKGROUND_TASKS: "true"
+      DATABASE_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${STAGING_E2E_CASINO_DB}
+      FOCUSPAY_API_URL: http://backend:8000
+      PYTHONPATH: /app/casino
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["python", "-m", "unittest", "tests.e2e.test_staging_v2_multiplayer", "tests.e2e.test_staging_pvp_recovery", "tests.e2e.test_staging_60_players"]
+    working_dir: /app/casino
+    volumes:
+      - ../../focuspay-casino:/app/casino:ro
+    networks: [casino_e2e]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - "/tmp:mode=1777,size=64m"
+    restart: "no"
+
+networks:
+  casino_e2e:
+    internal: true
+
+volumes:
+  postgres:
+    name: ${STAGING_E2E_CASINO_VOLUME:?required}

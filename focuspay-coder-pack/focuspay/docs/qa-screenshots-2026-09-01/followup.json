@@ -1,0 +1,394 @@
+[
+  {
+    "login_status": 200,
+    "token": true
+  },
+  {
+    "profile_url": "http://127.0.0.1:18082/casino/me",
+    "text": "К содержимому\nFocusBet\n6 387,8 ₽\nПополнить\nВывести\n2\nЛобби\n\nИГРЫ\n\nКубики\nБаккара\nБлэкджек\nРулетка\nДжекпот\nКомнаты\nFocusLucky\nЧестность\nПрофиль\nНастройки\nЛобби\n/\nПрофиль\nауебратва\nПривет, ауебратва\n\nУровень, оборот и комиссия. Пополнение — в кошельке.\n\nУровень 4\nОборот недели 240 438,79 ₽\n\nКомиссия сейчас 2.5% · после отыгрыша\n\n8% до отыгрыша · 2.5% после\n\nЕщё 259 561,21 ₽ оборота до уровня 5: кешбэк 20%, 5 000 ₽ на баланс\n\nПополнения\n\n0\n\nВыводы\n\n0\n\nБаланс, ₽\n\n6 387,8 ₽\n\nДоступно к выводу, ₽\n\n6 387,8 ₽\n\nВсего поставлено, ₽\n\n309 596,19 ₽\nПополнить\nВывести\nКошелёк\nНЕДЕЛЯ ПО ИГРАМ\nРулетка\n239 072,79 ₽\nДжекпот\n816 ₽\nБлэкджек\n250 ₽\nБаккара\n200 ₽\nКубики\n100 ₽\nИСТОРИЯ ИГР\n\nЗагрузка игр…\n\nНастройки FocusBet — имя и аватар"
+  },
+  {
+    "cashier_withdraw": "К содержимому\nFocusBet\n6 387,8 ₽\nПополнить\nВывести\n2\nЛобби\n\nИГРЫ\n\nКубики\nБаккара\nБлэкджек\nРулетка\nДжекпот\nКомнаты\nFocusLucky\nЧестность\nПрофиль\nНастройки\n\nFOCUSBET\n\nИграете с людьми. Считает сервер.\n\nКубики, баккара, блэкджек — стол 2–6, бота можно добавить. Рулетка 0–36, джекпот и комнаты. FocusLucky — билеты за обмены FocusPay. После раунда HMAC: можно пересчитать самому.\n\nИграть в кубики\nЧестность\n\nВыберите игру и поставьте. Карты и кубы только показывают то, что уже посчитал сервер.\n\nМИН. СТАВКА\n10 ₽\nКОМИССИЯ\n5%\nОТКРЫТЫЕ СТОЛЫ\n0\nДУЭЛИ\nИграть\nКубики\n2–6 игроков. Кто больше на кубах. Бота можно добавить.\nот 10 ₽ · комиссия 5%\nA\n9\nКАРТЫ\nИграть\nБаккара\n2–6 игроков. Ближе к 9. Бота можно добавить.\nот 10 ₽ · комиссия 5%\nA\nK\nКАРТЫ\nИграть\nБлэкджек\n2–6 игроков. Ближе к 21. Бота можно добавить.\nот 10 ₽ · комиссия 5%\nПРОТИВ FOCUSBET\nИграть\nРулетка\nОбщий стол 0–36. Своя фишка. Из Telegram тоже.\nо"
+  },
+  {
+    "bell": "К содержимому\nFocusBet\n6 387,8 ₽\nПополнить\nВывести\n2\n\nУВЕДОМЛЕНИЯ\n\n@absoluteop зашёл в игру\nБлэкджек · 100.00 ₽\nК игре\n@absoluteop зашёл в игру\nКубики · 100.00 ₽\nК игре\nЛобби\n\nИГРЫ\n\nКубики\nБаккара\nБлэкджек\nРулетка\nДжекпот\nКомнаты\nFocusLucky\nЧестность\nПрофиль\nНастройки\n\nFOCUSBET\n\nИграете с людьми. Считает сервер.\n\nКубики, баккара, блэкджек — стол 2–6, бота можно добавить. Рулетка 0–36, джекпот и комнаты. FocusLucky — билеты за обмены FocusPay. После раунда HMAC: можно пересчитать самому.\n\nИграть в кубики\nЧестность\n\nВыберите игру и поставьте. Карты и кубы только показывают то, что уже посчитал сервер.\n\nМИН. СТАВКА\n10 ₽\nКОМИССИЯ\n5%\nОТКРЫТЫЕ СТОЛЫ\n0\nДУЭЛИ\nИграть\nКубики\n2–6 игроков. Кто больше на кубах. Бота можно добавить.\nот 10 ₽ · комиссия 5%\nA\n9\nКАРТЫ\nИграть\nБаккара\n2–6 игроков. Ближе к 9. Бота можно добавить.\nот 10 ₽ · комиссия 5%\nA\nK\nКАРТЫ\nИграть\nБлэкджек\n2–6 игроков. Ближе к 21. Бота м"
+  },
+  {
+    "create_dice": {
+      "body": {
+        "created": true,
+        "joined": false,
+        "success": true,
+        "table": {
+          "bot_count": 0,
+          "can_add_bot": true,
+          "can_cancel": true,
+          "can_choose_draw": false,
+          "can_hit": false,
+          "can_leave": false,
+          "can_roll": false,
+          "can_stand": false,
+          "can_start": false,
+          "commission_rub": "5.00",
+          "countdown_ends_at": null,
+          "free_seats": [
+            2
+          ],
+          "game_state": {
+            "bot_count": 0,
+            "draw_policy": "tie_break",
+            "rounds": 1
+          },
+          "game_type": "pvp_dice",
+          "house_will_roll": false,
+          "is_creator": true,
+          "is_seated": true,
+          "max_seats": 2,
+          "my_seat_no": 1,
+          "net_payout_rub": "95.00",
+          "pot_rub": "100.00",
+          "roll_deadline_at": null,
+          "rolls_needed": 1,
+          "roster": [
+            {
+              "actor": {
+                "avatar_url": "/api/public/casino-avatars/940002?access=1788843600.8258b154d9cab0230a219d95e425839fce7bd7a3b2408caa2a0e0366382db9e7",
+                "display_name": "ауебратва",
+                "initial": "А",
+                "user_id": 940002
+              },
+              "cards": [],
+              "is_leader": false,
+              "is_winner": false,
+              "is_you": true,
+              "participant_kind": "player",
+              "payout_rub": null,
+              "pips": null,
+              "rolled": 0,
+              "score": null,
+              "seat_no": 1,
+              "total": null
+            }
+          ],
+          "stake_rub": "50.00",
+          "started_at": null,
+          "state_version": 0,
+          "status": "open",
+          "table_id": "web-930d2e5fe5b244c9"
+        },
+        "table_id": "web-930d2e5fe5b244c9"
+      },
+      "status": 200
+    }
+  },
+  {
+    "dice_tables": {
+      "success": true,
+      "tables": [
+        {
+          "bot_count": 0,
+          "can_add_bot": true,
+          "can_cancel": true,
+          "can_choose_draw": false,
+          "can_hit": false,
+          "can_leave": false,
+          "can_roll": false,
+          "can_stand": false,
+          "can_start": false,
+          "commission_rub": "5.00",
+          "countdown_ends_at": null,
+          "free_seats": [
+            2
+          ],
+          "game_state": {
+            "bot_count": 0,
+            "draw_policy": "tie_break",
+            "rounds": 1
+          },
+          "game_type": "pvp_dice",
+          "house_will_roll": false,
+          "is_creator": true,
+          "is_seated": true,
+          "max_seats": 2,
+          "my_seat_no": 1,
+          "net_payout_rub": "95.00",
+          "pot_rub": "100.00",
+          "roll_deadline_at": null,
+          "rolls_needed": 1,
+          "roster": [
+            {
+              "actor": {
+                "avatar_url": "/api/public/casino-avatars/940002?access=1788843600.8258b154d9cab0230a219d95e425839fce7bd7a3b2408caa2a0e0366382db9e7",
+                "display_name": "ауебратва",
+                "initial": "А",
+                "user_id": 940002
+              },
+              "cards": [],
+              "is_leader": false,
+              "is_winner": false,
+              "is_you": true,
+              "participant_kind": "player",
+              "payout_rub": null,
+              "pips": null,
+              "rolled": 0,
+              "score": null,
+              "seat_no": 1,
+              "total": null
+            }
+          ],
+          "stake_rub": "50.00",
+          "started_at": null,
+          "state_version": 0,
+          "status": "open",
+          "table_id": "web-930d2e5fe5b244c9"
+        }
+      ]
+    }
+  },
+  {
+    "baccara_tables": {
+      "success": true,
+      "tables": [
+        {
+          "bot_count": 1,
+          "can_add_bot": false,
+          "can_cancel": false,
+          "can_choose_draw": false,
+          "can_hit": false,
+          "can_leave": false,
+          "can_roll": false,
+          "can_stand": false,
+          "can_start": false,
+          "commission_rub": "4.00",
+          "countdown_ends_at": null,
+          "free_seats": [],
+          "game_state": {
+            "bot_count": 1,
+            "draw_choice_deadline_at": "2026-08-31T03:56:23.658040+00:00",
+            "draw_policy": "choose",
+            "hands": {
+              "1": [
+                "3♠",
+                "3♣",
+                "J♠"
+              ],
+              "2": [
+                "5♣",
+                "A♣"
+              ]
+            },
+            "phase": "draw_choice",
+            "rolls": {},
+            "rounds": 1,
+            "scores": {
+              "1": 6,
+              "2": 6
+            },
+            "seat_nos": [
+              1,
+              2
+            ],
+            "tie_break_round": 1,
+            "tie_break_seat_nos": [
+              1,
+              2
+            ]
+          },
+          "game_type": "baccara",
+          "house_will_roll": false,
+          "is_creator": false,
+          "is_seated": false,
+          "max_seats": 2,
+          "my_seat_no": null,
+          "net_payout_rub": "76.00",
+          "pot_rub": "80.00",
+          "roll_deadline_at": "2026-08-31T03:56:23.658040+00:00",
+          "rolls_needed": 1,
+          "roster": [
+            {
+              "actor": {
+                "avatar_url": "/api/public/casino-idents/u8443902979?v=3",
+                "display_name": "@absoluteop",
+                "initial": "A",
+                "user_id": 8443902979
+              },
+              "cards": [
+                "3♠",
+                "3♣",
+                "J♠"
+              ],
+              "is_leader": true,
+              "is_winner": false,
+              "is_you": false,
+              "participant_kind": "player",
+              "payout_rub": null,
+              "pips": null,
+              "rolled": 0,
+              "score": 6,
+              "seat_no": 1,
+              "total": null
+            },
+            {
+              "actor": {
+                "avatar_url": "/api/public/casino-idents/k1c5f2b62fec24a72?v=3",
+                "display_name": "PvP Robot 1",
+                "initial": "P",
+                "user_id": 0
+              },
+              "cards": [
+                "5♣",
+                "A♣"
+              ],
+              "is_leader": true,
+              "is_winner": false,
+              "is_you": false,
+              "participant_kind": "bot",
+              "payout_rub": null,
+              "pips": null,
+              "rolled": 0,
+              "score": 6,
+              "seat_no": 2,
+              "total": null
+            }
+          ],
+          "stake_rub": "40.00",
+          "started_at": "2026-08-28T20:39:13.749577+00:00",
+          "state_version": 10,
+          "status": "tie_break_running",
+          "table_id": "30c6b656-0efd-47b8-adc1-d0a4d63403ee"
+        }
+      ]
+    }
+  },
+  {
+    "fairness_options": [
+      "Баккара",
+      "Блэкджек",
+      "Рулетка",
+      "Джекпот",
+      "Комнаты",
+      "FocusLucky",
+      "Не сверять карты",
+      "Создатель",
+      "Соперник",
+      "Место 1",
+      "Место 2",
+      "Место 3",
+      "Место 4",
+      "Место 5",
+      "Место 6"
+    ]
+  },
+  {
+    "nav_labels": [
+      "К содержимому",
+      "FocusBet",
+      "Лобби",
+      "Лобби",
+      "Кубики",
+      "Кубики",
+      "Баккара",
+      "Баккара",
+      "Блэкджек",
+      "Блэкджек",
+      "Рулетка",
+      "Рулетка",
+      "Джекпот",
+      "Джекпот",
+      "Комнаты",
+      "Комнаты",
+      "FocusLucky",
+      "FocusLucky",
+      "Честность",
+      "Честность",
+      "Профиль",
+      "Профиль",
+      "Настройки",
+      "Настройки",
+      "Играть в кубики",
+      "Честность",
+      "🎲ДуэлиИгратьКубики2–6 игроков. Кто больше на кубах. Бота можно добавить.от 10 ₽ · комиссия 5%",
+      "A9🃏КартыИгратьБаккара2–6 игроков. Ближе к 9. Бота можно добавить.от 10 ₽ · комиссия 5%",
+      "AK🂡КартыИгратьБлэкджек2–6 игроков. Ближе к 21. Бота можно добавить.от 10 ₽ · комиссия 5%",
+      "🎡Против FocusBetИгратьРулеткаОбщий стол 0–36. Своя фишка. Из Telegram тоже.от 10 ₽ · комиссия 5%",
+      "🎡ДуэлиИгратьДжекпотОбщий банк. Больше ставка — больше шанс.от 10 ₽ · комиссия 5%",
+      "🎯ДуэлиИгратьКомнатыОдна ставка, 2–6 мест. Колесо выбирает одного. Банк минус комиссия. Пустое место — бот.от 10 ₽ · комиссия 5%",
+      "🎰Против FocusBetИгратьFocusLuckyБилеты за обмены. Живой розыгрыш.от 10 ₽ · комиссия 5%",
+      "Все столы",
+      "Создать комнату",
+      "КубикиСтол с людьмиРавные ставки, банк победителю. Бота можно добавить.",
+      "КартыБаккара и блэкджекСерверная тасовка. Выберите ставку и число мест, бота можно добавить за столом.",
+      "HMACПроверка честностиСерверный сид раскрывается после раунда. Можно пересчитать самому.",
+      "Лобби",
+      "Профиль"
+    ]
+  },
+  {
+    "holdem_in_lobby": false,
+    "clan_in_lobby": false
+  },
+  {
+    "inbox": {
+      "body": {
+        "items": [
+          {
+            "body": "Блэкджек · 100.00 ₽",
+            "created_at": "2026-08-29T22:04:35.025905+00:00",
+            "event_type": "player_joined",
+            "game_id": "web-0a14957efca1",
+            "href": "/casino/duels/web-0a14957efca1",
+            "id": 3,
+            "payload": {
+              "actor_id": 8443902979,
+              "game_type": "blackjack",
+              "kind": "duel"
+            },
+            "read_at": null,
+            "title": "@absoluteop зашёл в игру"
+          },
+          {
+            "body": "Кубики · 100.00 ₽",
+            "created_at": "2026-08-29T11:09:46.487514+00:00",
+            "event_type": "player_joined",
+            "game_id": "web-61d780262c3b",
+            "href": "/casino/duels/web-61d780262c3b",
+            "id": 2,
+            "payload": {
+              "actor_id": 8443902979,
+              "game_type": "pvp_dice",
+              "kind": "duel"
+            },
+            "read_at": null,
+            "title": "@absoluteop зашёл в игру"
+          }
+        ],
+        "sessions": [
+          {
+            "body": "50.00 ₽ · набор",
+            "can_cancel": true,
+            "can_leave": false,
+            "game_id": "web-930d2e5fe5b244c9",
+            "game_type": "pvp_dice",
+            "href": "/casino/tables/web-930d2e5fe5b244c9",
+            "kind": "v2",
+            "stake_rub": "50.00",
+            "status": "open",
+            "title": "Кубики · стол #WEB-930D"
+          }
+        ],
+        "success": true,
+        "unread": 2
+      },
+      "status": 200
+    }
+  },
+  {
+    "pending": [
+      {
+        "game_type": "blackjack",
+        "pending": null,
+        "success": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[Unit]
+Description=FocusPay merchant webhook (FastAPI)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=focuspay
+Group=focuspay
+WorkingDirectory=/opt/tg_bot_btc
+EnvironmentFile=/opt/tg_bot_btc/.env
+ExecStart=/opt/tg_bot_btc/venv/bin/uvicorn services.webhook_server:app --host 127.0.0.1 --port 8081 --no-server-header --limit-concurrency 50
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

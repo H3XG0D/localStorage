@@ -1,0 +1,24 @@
+# Nightly SAST (focuspay-sast-selfcheck). Fail-closed on remaining tests.
+#
+# B608: asyncpg queries use $N bind params; dynamic fragments are allowlisted
+# identifiers / prebuilt WHERE clauses, not raw user SQL. The heuristic flags
+# every f-string containing SELECT/UPDATE. Skipping avoids 60+ identical FPs
+# without # nosec inside SQL string bodies (which is not a Python comment).
+# New SQL must stay parameterized; do not interpolate user input.
+exclude_dirs:
+  - tests
+  - scripts
+  - deploy
+  - _legacy
+  - tmp
+  - tmp_patch
+  - tmp_news_deploy
+  - venv
+  - .venv
+  - __pycache__
+  - .git
+  - node_modules
+  - .tox
+  - dist
+  - build
+skips: ['B608']

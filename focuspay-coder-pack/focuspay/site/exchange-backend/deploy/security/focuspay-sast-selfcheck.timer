@@ -1,0 +1,12 @@
+[Unit]
+Description=FocusPay nightly SAST self-check timer
+Documentation=file:///opt/exchange-backend/deploy/security/README.md
+
+[Timer]
+OnCalendar=*-*-* 04:15:00
+Persistent=true
+RandomizedDelaySec=300
+Unit=focuspay-sast-selfcheck.service
+
+[Install]
+WantedBy=timers.target

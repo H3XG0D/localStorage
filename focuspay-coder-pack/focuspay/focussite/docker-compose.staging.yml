@@ -1,0 +1,243 @@
+name: focuspay-staging
+
+x-staging-env: &staging-env
+  - path: .env.staging
+    required: false
+
+x-casino-staging-env: &casino-staging-env
+  - path: ../focuspay-casino/.env.staging
+    required: false
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    env_file: *staging-env
+    volumes:
+      - focuspay_staging_postgres:/var/lib/postgresql/data
+    networks:
+      - app_net
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+      - /var/run/postgresql:uid=70,gid=70,mode=0775,size=8m
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
+    user: "999:999"
+    volumes:
+      - focuspay_staging_redis:/data
+    networks:
+      - app_net
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
+
+  fake-payfast:
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file: *staging-env
+    command: ["python", "/app/test_support/fake_payfast_server.py"]
+    networks:
+      - app_net
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "from urllib.request import urlopen;
+          response = urlopen('http://127.0.0.1:8081/health', timeout=3);
+          raise SystemExit(0 if response.status == 200 else 1)"
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  staging-bootstrap:
+    profiles: ["payments", "full-panel"]
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file: *staging-env
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER}
+      PGDATABASE: ${POSTGRES_DB}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      MIGRATIONS_DIR: /migrations
+      BOT_MIGRATIONS_DIR: /bot-migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["bash", "/bootstrap/10-bootstrap-dispatch.sh"]
+    networks:
+      - app_net
+    volumes:
+      - ./docker/staging-db:/bootstrap:ro
+      - ./staging-migrations/backend:/migrations:ro
+      - ./staging-migrations/bot:/bot-migrations:ro
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    restart: "no"
+
+  backend:
+    profiles: ["payments", "full-panel"]
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file: *staging-env
+    command: ["python", "/runtime/run_backend.py"]
+    depends_on:
+      staging-bootstrap:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      fake-payfast:
+        condition: service_healthy
+    networks:
+      - app_net
+    volumes:
+      - focuspay_staging_receipts:/opt/tg_bot_btc/receipts
+      - focuspay_staging_chat_uploads:/opt/tg_bot_btc/chat_uploads
+      - focuspay_staging_bot_user_avatars:/opt/tg_bot_btc/bot_user_avatars
+      - focuspay_staging_operator_avatars:/opt/tg_bot_btc/operator_avatars
+      - focuspay_staging_logs:/var/log/focuspay
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=128m
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python -c "from urllib.request import urlopen;
+          response = urlopen('http://127.0.0.1:8000/api/health', timeout=3);
+          raise SystemExit(0 if response.status == 200 else 1)"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.50"
+          memory: 1G
+
+
+  casino-bot:
+    profiles: ["casino-smoke"]
+    build:
+      context: ../../focuspay-casino
+      dockerfile: ../focuspay/focussite/docker/casino-bot.Dockerfile
+    env_file: *casino-staging-env
+    command: ["python", "deployment_smoke_check.py"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app_net
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  casino-e2e:
+    profiles: ["casino-e2e"]
+    build:
+      context: ..
+      dockerfile: focussite/docker/backend.Dockerfile
+    env_file:
+      - path: .env.staging
+        required: true
+      - path: ../focuspay-casino/.env.staging
+        required: true
+    environment:
+      STAGING_E2E: "1"
+      PYTHONPATH: /app/casino
+    working_dir: /app/casino
+    command: ["python", "-m", "unittest", "tests.e2e.test_staging_pvp_recovery"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - app_net
+    volumes:
+      - ../../focuspay-casino:/app/casino:ro
+    <<: *hardening
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+networks:
+  app_net:
+    name: focuspay_staging_app_net
+
+volumes:
+  focuspay_staging_postgres:
+    name: focuspay_staging_postgres
+  focuspay_staging_redis:
+    name: focuspay_staging_redis
+  focuspay_staging_receipts:
+    name: focuspay_staging_receipts
+  focuspay_staging_chat_uploads:
+    name: focuspay_staging_chat_uploads
+  focuspay_staging_bot_user_avatars:
+    name: focuspay_staging_bot_user_avatars
+  focuspay_staging_operator_avatars:
+    name: focuspay_staging_operator_avatars
+  focuspay_staging_logs:
+    name: focuspay_staging_logs

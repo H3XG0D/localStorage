@@ -1,0 +1,339 @@
+.ex-app {
+  display: flex;
+  width: 100%;
+  max-width: 480px;
+  height: var(--ex-app-h, 100dvh);
+  max-height: var(--ex-app-h, 100dvh);
+  margin-inline: auto;
+  flex-direction: column;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.ex-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: calc(16px + var(--ex-safe-top, 0px)) 16px 12px;
+}
+
+.ex-scroll input,
+.ex-scroll textarea {
+  scroll-margin-top: 16px;
+  scroll-margin-bottom: 96px;
+}
+
+.ex-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 16px -16px 0;
+  padding: 12px 16px 4px;
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+}
+
+html.ex-keyboard .ex-tabs {
+  display: none;
+}
+
+html.ex-keyboard .ex-dock {
+  padding-bottom: 8px;
+}
+
+.ex-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.ex-recent li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  border-radius: 12px;
+  background: var(--muted);
+  padding: 6px 8px 6px 12px;
+}
+
+.ex-recent span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.ex-recent button {
+  flex: none;
+  min-height: 32px;
+  border-radius: 999px;
+  background: var(--card);
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ex-lucky-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.ex-lucky-row + .ex-lucky-row {
+  border-top: 1px solid var(--border);
+}
+
+.ex-lucky-row.is-mine .ex-lucky-name {
+  font-weight: 700;
+}
+
+.ex-lucky-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.ex-lucky-meta {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.ex-lucky-chance {
+  text-align: right;
+  font-size: 13px;
+}
+
+.ex-lucky-bar {
+  height: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--muted);
+}
+
+.ex-lucky-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--foreground);
+}
+
+.ex-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  padding: 6px 8px calc(8px + var(--ex-safe-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+.ex-tab {
+  display: flex;
+  min-height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 12px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.ex-tab[aria-current="page"] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.ex-mono {
+  font-family: "DM Mono", "Manrope", ui-sans-serif, sans-serif;
+}
+
+.ex-hero {
+  margin-bottom: 16px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 18px 16px 16px;
+}
+
+.ex-kicker {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ex-hero-rate {
+  margin-top: 4px;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.ex-hero-rate small {
+  font-family: "Manrope", ui-sans-serif, sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ex-hero-get {
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.ex-seg {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: var(--muted);
+  padding: 4px;
+}
+
+.ex-seg button {
+  min-height: 40px;
+  border-radius: 11px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ex-seg button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.ex-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.ex-chip {
+  min-height: 36px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ex-chip[aria-pressed="true"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.ex-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: color-mix(in srgb, #0a0a0b 45%, transparent);
+}
+
+.ex-sheet-card {
+  width: min(480px, 100%);
+  border-radius: 24px 24px 0 0;
+  background: var(--card);
+  padding: 16px 16px calc(16px + var(--ex-safe-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+.ex-reel {
+  position: relative;
+  height: 76px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.ex-reel-tick {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  z-index: 2;
+  width: 2px;
+  transform: translateX(-1px);
+  border-radius: 2px;
+  background: var(--foreground);
+}
+
+.ex-reel-track {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.ex-reel-track.is-spinning {
+  transition: transform 10.5s cubic-bezier(0.12, 0.7, 0.08, 1);
+}
+
+.ex-reel-slot {
+  display: flex;
+  width: 56px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.ex-avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ex-lucky {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ex-lucky .casino-jackpot {
+  --casino-jackpot-slot: 56px;
+  max-width: 100%;
+  gap: 12px;
+}
+
+.ex-lucky .casino-raffle-hero,
+.ex-lucky .casino-raffle-places {
+  grid-template-columns: 1fr;
+}
+
+.ex-lucky .casino-raffle-tabs {
+  max-width: 100%;
+}
+
+.ex-lucky .casino-raffle-list {
+  max-height: none;
+}
+
+.ex-lucky .casino-jackpot-hero > strong {
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.ex-lucky .casino-jackpot-fair a {
+  color: inherit;
+}
